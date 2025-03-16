@@ -18,11 +18,113 @@ import { useUser } from '@/lib/auth';
 import { use } from 'react';
 
 // 对接第三方大模型API的函数，用于解析需求并分解模块
-async function parseDemandsWithLLM(description: string) {
+async function parseDemandsWithLLM(description: string, category?: string) {
   // 这里是模拟调用大模型API的逻辑
-  // 实际实现中应该调用如DeepSeek等大模型API
+  // 实际实现中应该调用如DeepSeek等大模型API，并将category作为提示信息
   
-  // 简单模拟解析结果
+  if (category === '智慧城市') {
+    return {
+      modules: [
+        {
+          moduleName: 'AI交互系统',
+          description: '开发智能语音交互接口，提升用户体验',
+          weight: 0.3,
+        },
+        {
+          moduleName: '数据分析平台',
+          description: '构建数据分析系统，优化资源利用',
+          weight: 0.3,
+        },
+        {
+          moduleName: '移动应用集成',
+          description: '与本地生活APP集成，实现联动服务',
+          weight: 0.2,
+        },
+        {
+          moduleName: '业务优化方案',
+          description: '优化商业模式和经营策略',
+          weight: 0.2,
+        },
+      ]
+    };
+  } else if (category === '新能源') {
+    return {
+      modules: [
+        {
+          moduleName: '智能调度系统',
+          description: '充电桩智能调度与管理系统开发',
+          weight: 0.3,
+        },
+        {
+          moduleName: '安全监控平台',
+          description: '充电设备安全监控系统',
+          weight: 0.3,
+        },
+        {
+          moduleName: '用户分析系统',
+          description: '用户行为分析与服务优化',
+          weight: 0.2,
+        },
+        {
+          moduleName: '运营平台',
+          description: '充电桩运营管理与数据分析',
+          weight: 0.2,
+        },
+      ]
+    };
+  } else if (category === '无人机') {
+    return {
+      modules: [
+        {
+          moduleName: '低空表演系统',
+          description: '无人机编队表演控制系统',
+          weight: 0.25,
+        },
+        {
+          moduleName: '智能巡检系统',
+          description: '基于计算机视觉的智能巡检',
+          weight: 0.25,
+        },
+        {
+          moduleName: '物流配送系统',
+          description: '无人机物流配送路径规划与调度',
+          weight: 0.25,
+        },
+        {
+          moduleName: '远程监控平台',
+          description: '低空设备远程监控与管理',
+          weight: 0.25,
+        },
+      ]
+    };
+  } else if (category === '能源管理') {
+    return {
+      modules: [
+        {
+          moduleName: '光伏智能优化系统',
+          description: '基于环境数据的光伏板角度智能调整',
+          weight: 0.3,
+        },
+        {
+          moduleName: '能效预测模型',
+          description: '发电效率预测与参数优化',
+          weight: 0.25,
+        },
+        {
+          moduleName: '安全防护系统',
+          description: '恶劣天气预警与设备保护',
+          weight: 0.25,
+        },
+        {
+          moduleName: '综合管理平台',
+          description: '多站点统一监控与管理',
+          weight: 0.2,
+        },
+      ]
+    };
+  }
+  
+  // 默认分解模块
   return {
     modules: [
       {
@@ -53,6 +155,7 @@ async function parseDemandsWithLLM(description: string) {
 const demandFormSchema = z.object({
   title: z.string().min(5),
   description: z.string().min(20),
+  category: z.string().optional(),
   budget: z.string().optional(),
   timeline: z.string().optional(),
   cooperationType: z.string().optional(),
@@ -70,6 +173,7 @@ export async function submitDemand(formData: FormData) {
     const validatedData = demandFormSchema.parse({
       title: formData.get('title'),
       description: formData.get('description'),
+      category: formData.get('category'),
       budget: formData.get('budget'),
       timeline: formData.get('timeline'),
       cooperationType: formData.get('cooperationType'),
@@ -88,7 +192,7 @@ export async function submitDemand(formData: FormData) {
     }
 
     // 使用大模型解析需求
-    const parsedResult = await parseDemandsWithLLM(validatedData.description);
+    const parsedResult = await parseDemandsWithLLM(validatedData.description, validatedData.category);
 
     // 计算预算数值（如果有）
     let budgetValue = null;
