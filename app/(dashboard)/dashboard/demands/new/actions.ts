@@ -162,11 +162,18 @@ const demandFormSchema = z.object({
 
 export async function submitDemand(formData: FormData) {
   try {
-    // 从表单数据中获取用户ID
-    const userId = formData.get('userId') as string;
+    // 从表单数据中获取用户ID并转换为数字
+    const userIdStr = formData.get('userId') as string;
     
-    if (!userId) {
+    if (!userIdStr) {
       return { success: false, message: '缺少用户ID' };
+    }
+    
+    // 转换userId为数字
+    const userId = parseInt(userIdStr, 10);
+    
+    if (isNaN(userId)) {
+      return { success: false, message: '用户ID格式无效' };
     }
 
     // 获取用户信息
@@ -186,7 +193,7 @@ export async function submitDemand(formData: FormData) {
       budget: formData.get('budget'),
       timeline: formData.get('timeline'),
       cooperationType: formData.get('cooperationType'),
-      userId: userId,
+      userId: userIdStr,
     });
 
     // 获取团队信息
@@ -222,7 +229,7 @@ export async function submitDemand(formData: FormData) {
       budget: budgetValue,
       timeline: validatedData.timeline,
       cooperationType: validatedData.cooperationType,
-      submittedBy: userId,
+      submittedBy: userId,  // 使用转换后的数字ID
       teamId: teamMember.team.id,
       status: 'new',
     }).returning();
@@ -244,7 +251,7 @@ export async function submitDemand(formData: FormData) {
     // 记录活动日志
     await db.insert(activityLogs).values({
       teamId: teamMember.team.id,
-      userId: userId,
+      userId: userId,  // 使用转换后的数字ID
       action: ActivityType.CREATE_DEMAND,
       ipAddress: '127.0.0.1', // 实际应从请求中获取
     });
