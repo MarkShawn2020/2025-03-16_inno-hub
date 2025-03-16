@@ -5,11 +5,10 @@ import Image from 'next/image';
 import { db } from '@/lib/db/drizzle';
 import { demands, matchResults } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { auth } from '@/lib/auth/utils';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Building, Mail, Phone } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-
+import { getUser } from '@/lib/db/queries';
 interface MatchesPageProps {
   params: {
     id: string;
@@ -33,8 +32,8 @@ export async function generateMetadata({ params }: MatchesPageProps): Promise<Me
 
 async function getDemand(id: number) {
   try {
-    const authResult = await auth();
-    if (!authResult?.userId) {
+    const user = await getUser();
+    if (!user) {
       return null;
     }
 
@@ -50,7 +49,7 @@ async function getDemand(id: number) {
       },
     });
 
-    if (!demand || demand.submittedBy !== authResult.userId) {
+    if (!demand || demand.submittedBy !== user.id) {
       return null;
     }
 
@@ -142,7 +141,8 @@ export default async function MatchesPage({ params }: MatchesPageProps) {
                     {match.company.description || '暂无企业简介'}
                   </p>
                 </div>
-                {match.company.advantageTags && (
+
+                {!!match.company.advantageTags && (
                   <div className="mb-4">
                     <h4 className="text-sm font-medium text-gray-500 mb-2">企业优势</h4>
                     <div className="flex flex-wrap gap-2">
@@ -154,6 +154,7 @@ export default async function MatchesPage({ params }: MatchesPageProps) {
                     </div>
                   </div>
                 )}
+
                 <div className="mt-6 flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     {match.company.contactName && (

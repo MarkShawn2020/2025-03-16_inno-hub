@@ -3,11 +3,11 @@ import Link from 'next/link';
 import { db } from '@/lib/db/drizzle';
 import { demands } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { auth } from '@/lib/auth/utils';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { DemandStatusBadge } from './components/demand-status-badge';
 import { formatDate } from '@/lib/utils';
+import { getUser } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
   title: '企业需求管理 | 商机匹配平台',
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
 
 async function getDemandsForUser() {
   try {
-    const authResult = await auth();
-    if (!authResult?.userId) {
+    const user = await getUser();
+    if (!user) {
       return [];
     }
 
     const userDemands = await db.query.demands.findMany({
-      where: eq(demands.submittedBy, authResult.userId),
+      where: eq(demands.submittedBy, user.id),
       orderBy: [desc(demands.createdAt)],
       with: {
         matchResults: {
