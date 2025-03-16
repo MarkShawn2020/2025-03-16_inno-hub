@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
-import { submitDemand } from './actions';
-import DemandForm from './form';
+import dynamic from 'next/dynamic';
+
+// 使用动态导入
+const DemandForm = dynamic(() => import('./Form'), { ssr: true });
 
 export const metadata: Metadata = {
   title: '提交企业需求 | 商机匹配平台',
@@ -16,7 +18,7 @@ export default function NewDemandPage() {
           请描述您的需求，系统将自动为您匹配最合适的企业。您可以用自然语言描述需求，
           也可以填写具体的预算、工期和合作类型等信息。
         </p>
-        <DemandForm submitDemand={submitDemand} />
+        <DemandForm />
       </div>
     </div>
   );

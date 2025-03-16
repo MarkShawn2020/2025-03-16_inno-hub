@@ -148,19 +148,19 @@ export default function DemandForm() {
       // 添加用户ID，这是关键的修改，把用户ID从客户端传递给服务端
       // 确保userId是字符串类型
       formData.append('userId', user.id.toString());
-
+      
       // 提交需求
       const result = await submitDemand(formData);
-
+      
       if (result.success) {
-        toast.success(result.message);
+        toast.success('需求提交成功！');
         router.push('/dashboard/demands');
       } else {
-        toast.error(result.message);
+        toast.error(`提交失败: ${result.message}`);
       }
     } catch (error) {
-      console.error('提交需求失败:', error);
-      toast.error('提交需求时发生错误');
+      console.error('提交需求时出错:', error);
+      toast.error('提交时发生错误，请稍后重试');
     } finally {
       setIsSubmitting(false);
     }

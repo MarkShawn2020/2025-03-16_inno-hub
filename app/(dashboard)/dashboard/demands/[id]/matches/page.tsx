@@ -9,14 +9,16 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Building, Mail, Phone } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { getUser } from '@/lib/db/queries';
+
 interface MatchesPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: MatchesPageProps): Promise<Metadata> {
-  const demand = await getDemand(parseInt(params.id));
+  const resolvedParams = await params;
+  const demand = await getDemand(parseInt(resolvedParams.id));
 
   if (!demand) {
     return {
@@ -61,7 +63,8 @@ async function getDemand(id: number) {
 }
 
 export default async function MatchesPage({ params }: MatchesPageProps) {
-  const demand = await getDemand(parseInt(params.id));
+  const resolvedParams = await params;
+  const demand = await getDemand(parseInt(resolvedParams.id));
 
   if (!demand) {
     notFound();

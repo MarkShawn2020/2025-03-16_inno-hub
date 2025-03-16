@@ -1,27 +1,16 @@
 import { redirect } from 'next/navigation';
-import { Settings } from './settings';
-import { getTeamForUser, getUser } from '@/lib/db/queries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, Building, FileText, BriefcaseBusiness, ArrowUp, ArrowDown } from 'lucide-react';
 import Link from 'next/link';
+import { getUser } from '@/lib/db/queries';
 
-export default async function SettingsPage() {
+export default async function DashboardPage() {
   const user = await getUser();
 
   if (!user) {
     redirect('/sign-in');
   }
 
-  const teamData = await getTeamForUser(user.id);
-
-  if (!teamData) {
-    throw new Error('Team not found');
-  }
-
-  return <Settings teamData={teamData} />;
-}
-
-export function DashboardPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">商机匹配平台概览</h1>

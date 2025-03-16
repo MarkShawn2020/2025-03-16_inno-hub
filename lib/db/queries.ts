@@ -1,10 +1,13 @@
+'use server';
+
 import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
-import { activityLogs, teamMembers, teams, users } from './schema';
+import { activityLogs, demands, teamMembers, teams, users } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 
 export async function getUser() {
+
   const sessionCookie = (await cookies()).get('session');
   if (!sessionCookie || !sessionCookie.value) {
     return null;
@@ -126,4 +129,31 @@ export async function getTeamForUser(userId: number) {
   });
 
   return result?.teamMembers[0]?.team || null;
+}
+
+
+export async function getDemandsForUser() {
+  try {
+    const user = await getUser();
+    if (!user) {
+      return [];
+    }
+
+    const userDemands = await db.query.demands.findMany({
+      where: eq(demands.submittedBy, user.id),
+      orderBy: [desc(demands.createdAt)],
+      with: {
+        matchResults: {
+          with: {
+            company: true,
+          },
+        },
+      },
+    });
+
+    return userDemands;
+  } catch (error) {
+    console.error('获取需求列表时出错:', error);
+    return [];
+  }
 }

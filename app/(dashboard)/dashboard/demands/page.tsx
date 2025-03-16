@@ -1,44 +1,17 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { db } from '@/lib/db/drizzle';
-import { demands } from '@/lib/db/schema';
-import { desc, eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { DemandStatusBadge } from './components/demand-status-badge';
 import { formatDate } from '@/lib/utils';
-import { getUser } from '@/lib/db/queries';
+import { getDemandsForUser } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
   title: '企业需求管理 | 商机匹配平台',
   description: '管理您提交的企业需求和匹配结果',
 };
 
-async function getDemandsForUser() {
-  try {
-    const user = await getUser();
-    if (!user) {
-      return [];
-    }
 
-    const userDemands = await db.query.demands.findMany({
-      where: eq(demands.submittedBy, user.id),
-      orderBy: [desc(demands.createdAt)],
-      with: {
-        matchResults: {
-          with: {
-            company: true,
-          },
-        },
-      },
-    });
-
-    return userDemands;
-  } catch (error) {
-    console.error('获取需求列表时出错:', error);
-    return [];
-  }
-}
 
 export default async function DemandsPage() {
   const userDemands = await getDemandsForUser();
