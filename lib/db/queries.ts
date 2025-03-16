@@ -133,7 +133,7 @@ export async function getTeamForUser(userId: number) {
 
 
 export async function getDemandsForUser() {
-  try {
+  
     const user = await getUser();
     if (!user) {
       return [];
@@ -152,8 +152,4 @@ export async function getDemandsForUser() {
     });
 
     return userDemands;
-  } catch (error) {
-    console.error('获取需求列表时出错:', error);
-    return [];
   }
-}

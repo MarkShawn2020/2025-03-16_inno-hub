@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2 } from 'lucide-react';
 import { DemandStatusBadge } from '../components/demand-status-badge';
 import { formatDate } from '@/lib/utils';
+import { unstable_noStore } from 'next/cache';
 
 interface DemandPageProps {
   params: Promise<{
@@ -109,6 +110,9 @@ async function getDemand(id: number) {
 }
 
 export default async function DemandPage({ params }: DemandPageProps) {
+  unstable_noStore() // opt out before we even get to the try/catch
+
+
   try {
     // 必须先await params再访问其属性
     const resolvedParams = await params;

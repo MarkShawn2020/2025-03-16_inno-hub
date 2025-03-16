@@ -111,10 +111,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: '概览' },
-    { href: '/dashboard/demands', icon: FileText, label: '需求管理' },
     { href: '/dashboard/companies', icon: Building, label: '企业管理' },
+    { href: '/dashboard/demands', icon: FileText, label: '需求管理' },
     { href: '/dashboard/matches', icon: Link2, label: '匹配结果' },
-    { href: '/account', icon: Settings, label: '账号设置' },
   ];
 
   return (

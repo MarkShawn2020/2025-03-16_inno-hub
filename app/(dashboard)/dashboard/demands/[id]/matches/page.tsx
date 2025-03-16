@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Building, Mail, Phone } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { getUser } from '@/lib/db/queries';
+import { unstable_noStore } from 'next/cache';
 
 interface MatchesPageProps {
   params: Promise<{
@@ -17,6 +18,7 @@ interface MatchesPageProps {
 }
 
 export async function generateMetadata({ params }: MatchesPageProps): Promise<Metadata> {
+
   const resolvedParams = await params;
   const demand = await getDemand(parseInt(resolvedParams.id));
 
@@ -33,7 +35,7 @@ export async function generateMetadata({ params }: MatchesPageProps): Promise<Me
 }
 
 async function getDemand(id: number) {
-  try {
+  
     const user = await getUser();
     if (!user) {
       return null;
@@ -56,11 +58,7 @@ async function getDemand(id: number) {
     }
 
     return demand;
-  } catch (error) {
-    console.error('获取需求信息时出错:', error);
-    return null;
   }
-}
 
 export default async function MatchesPage({ params }: MatchesPageProps) {
   const resolvedParams = await params;

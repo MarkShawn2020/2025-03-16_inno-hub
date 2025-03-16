@@ -5,6 +5,7 @@ import { PlusCircle } from 'lucide-react';
 import { DemandStatusBadge } from './components/demand-status-badge';
 import { formatDate } from '@/lib/utils';
 import { getDemandsForUser } from '@/lib/db/queries';
+import { unstable_noStore } from 'next/cache';
 
 export const metadata: Metadata = {
   title: '企业需求管理 | 商机匹配平台',
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
 
 
 export default async function DemandsPage() {
+  unstable_noStore() // opt out before we even get to the try/catch
+
   const userDemands = await getDemandsForUser();
 
   return (
