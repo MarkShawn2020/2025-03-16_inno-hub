@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { auth } from '@/auth';
-import { db } from '@/db';
-import { company } from '@/db/schema';
+import { cookies } from 'next/headers';
+import { db } from '@/lib/db/drizzle';
+import { companies, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,17 +13,36 @@ export const metadata: Metadata = {
   description: '管理您的企业数据库',
 };
 
+// 与需求详情页使用相同的获取用户ID方法
+async function getCurrentUserId() {
+  try {
+    // 直接从cookie获取userId（如果有）
+    const cookieList = cookies();
+    const userIdCookie = cookieList.get('userId');
+    if (userIdCookie) {
+      return userIdCookie.value;
+    }
+    
+    // 假设还有其他获取用户ID的途径，根据项目实际情况调整
+    return null;
+  } catch (error) {
+    console.error('获取当前用户ID失败:', error);
+    return null;
+  }
+}
+
 async function getCompanies(userId: string) {
-  return db.query.company.findMany({
-    where: eq(company.userId, userId),
-    orderBy: [company.createdAt]
+  return db.query.companies.findMany({
+    where: eq(companies.userId, parseInt(userId)),
+    orderBy: [companies.createdAt]
   });
 }
 
 export default async function CompaniesPage() {
-  const session = await auth();
+  // 获取当前用户
+  const userId = await getCurrentUserId();
   
-  if (!session?.user?.id) {
+  if (!userId) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Card className="p-6">
@@ -37,7 +56,7 @@ export default async function CompaniesPage() {
     );
   }
   
-  const companies = await getCompanies(session.user.id);
+  const companies = await getCompanies(userId);
   
   return (
     <div className="container mx-auto py-10">

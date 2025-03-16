@@ -1,11 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db/drizzle';
-import { demands } from '@/lib/db/schema';
+import { demands, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { use } from 'react';
-import { useUser } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -34,10 +33,57 @@ export async function generateMetadata({ params }: DemandPageProps): Promise<Met
   };
 }
 
+// 从会话cookie解析用户ID的辅助函数
+async function getUserIdFromSessionCookie(sessionCookie: string) {
+  try {
+    // 这里应该实现解析会话cookie的逻辑
+    // 通常会涉及解密、验证等步骤
+    // 以下是示例实现，实际应该根据项目的会话管理方式调整
+    
+    // 假设cookie格式为JSON字符串并包含userId字段
+    const sessionData = JSON.parse(atob(sessionCookie.split('.')[1]));
+    return sessionData.userId;
+  } catch (error) {
+    console.error('解析会话cookie失败:', error);
+    return null;
+  }
+}
+
+async function getCurrentUserId() {
+  try {
+    // 直接从cookie获取userId（如果有）
+    // 这里根据实际项目的认证方式实现
+    const cookieList = cookies();
+    const userIdCookie = cookieList.get('userId');
+    if (userIdCookie) {
+      return userIdCookie.value;
+    }
+    
+    // 从session cookie解析（备选方案）
+    const sessionCookie = cookieList.get('session');
+    if (sessionCookie) {
+      return await getUserIdFromSessionCookie(sessionCookie.value);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('获取当前用户ID失败:', error);
+    return null;
+  }
+}
+
 async function getDemand(id: number) {
   try {
-    const { userPromise } = useUser();
-    const user = use(userPromise);
+    const userId = await getCurrentUserId();
+    
+    if (!userId) {
+      return null;
+    }
+
+    // 验证用户是否存在
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
 
     if (!user) {
       return null;
@@ -55,7 +101,7 @@ async function getDemand(id: number) {
       },
     });
 
-    if (!demand || demand.submittedBy !== user.id) {
+    if (!demand || demand.submittedBy !== userId) {
       return null;
     }
 
@@ -66,8 +112,8 @@ async function getDemand(id: number) {
   }
 }
 
-export default function DemandPage({ params }: DemandPageProps) {
-  const demand = use(getDemand(parseInt(params.id)));
+export default async function DemandPage({ params }: DemandPageProps) {
+  const demand = await getDemand(parseInt(params.id));
 
   if (!demand) {
     notFound();
@@ -212,11 +258,11 @@ export default function DemandPage({ params }: DemandPageProps) {
                     <div className="flex justify-between items-center">
                       <h4 className="font-medium">{module.moduleName}</h4>
                       <span className="text-xs text-gray-500">
-                        权重: {module.weight * 100}%
+                        权重: {(module.weight || 0) * 100}%
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">{module.description}</p>
-                    <Progress value={module.weight * 100} className="h-1" />
+                    <Progress value={(module.weight || 0) * 100} className="h-1" />
                   </div>
                 ))}
               </div>

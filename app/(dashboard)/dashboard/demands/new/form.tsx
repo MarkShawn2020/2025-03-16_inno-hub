@@ -31,6 +31,9 @@ import { cn } from '@/lib/utils';
 import DemandExampleSelector from './demand-example-selector';
 import { DemandExample } from './example-demands';
 import { Check, Clock, CreditCard, FileText, LayoutGrid, Briefcase } from 'lucide-react';
+import { useUser } from '@/lib/auth';
+import { use } from 'react';
+import { submitDemand } from './actions';
 
 // 定义表单验证模式
 const formSchema = z.object({
@@ -74,15 +77,13 @@ const cooperationTypeOptions = [
   { value: '其他', label: '其他', description: '其他形式的合作方式' },
 ];
 
-export default function DemandForm({
-  submitDemand,
-}: {
-  submitDemand: (data: FormData) => Promise<{ success: boolean; message: string }>;
-}) {
+export default function DemandForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('examples');
   const [formStep, setFormStep] = useState<number>(0);
+  const { userPromise } = useUser();
+  const user = use(userPromise);
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
@@ -127,35 +128,43 @@ export default function DemandForm({
     setFormStep(current => Math.max(current - 1, 0));
   };
 
-  // 提交处理函数
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  // 处理表单提交
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast.error('用户未登录，请先登录');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      // 创建表单数据对象
       const formData = new FormData();
-      Object.entries(values).forEach(([key, value]) => {
+      
+      // 添加表单字段
+      Object.entries(data).forEach(([key, value]) => {
         if (value) formData.append(key, value);
       });
-
-      const result = await submitDemand(formData);
       
+      // 添加用户ID，这是关键的修改，把用户ID从客户端传递给服务端
+      // 确保userId是字符串类型
+      formData.append('userId', user.id.toString());
+
+      // 提交需求
+      const result = await submitDemand(formData);
+
       if (result.success) {
-        toast.success('需求提交成功', {
-          description: '我们将尽快为您匹配合适的企业',
-        });
+        toast.success(result.message);
         router.push('/dashboard/demands');
       } else {
-        toast.error('提交失败', {
-          description: result.message || '请稍后重试',
-        });
+        toast.error(result.message);
       }
     } catch (error) {
-      toast.error('发生错误', {
-        description: '提交需求时发生错误，请稍后重试',
-      });
+      console.error('提交需求失败:', error);
+      toast.error('提交需求时发生错误');
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   // 表单步骤标题
   const formSteps = [

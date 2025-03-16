@@ -14,8 +14,6 @@ import {
 } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { useUser } from '@/lib/auth';
-import { use } from 'react';
 
 // 对接第三方大模型API的函数，用于解析需求并分解模块
 async function parseDemandsWithLLM(description: string, category?: string) {
@@ -159,12 +157,23 @@ const demandFormSchema = z.object({
   budget: z.string().optional(),
   timeline: z.string().optional(),
   cooperationType: z.string().optional(),
+  userId: z.string(),  // 添加userId字段，由客户端传入
 });
 
 export async function submitDemand(formData: FormData) {
   try {
-    const { userPromise } = useUser();
-    const user = use(userPromise);
+    // 从表单数据中获取用户ID
+    const userId = formData.get('userId') as string;
+    
+    if (!userId) {
+      return { success: false, message: '缺少用户ID' };
+    }
+
+    // 获取用户信息
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
     if (!user) {
       return { success: false, message: '用户不存在' };
     }
@@ -177,11 +186,12 @@ export async function submitDemand(formData: FormData) {
       budget: formData.get('budget'),
       timeline: formData.get('timeline'),
       cooperationType: formData.get('cooperationType'),
+      userId: userId,
     });
 
     // 获取团队信息
     const teamMember = await db.query.teamMembers.findFirst({
-      where: eq(teamMembers.userId, user.id),
+      where: eq(teamMembers.userId, userId),
       with: {
         team: true,
       },
@@ -212,7 +222,7 @@ export async function submitDemand(formData: FormData) {
       budget: budgetValue,
       timeline: validatedData.timeline,
       cooperationType: validatedData.cooperationType,
-      submittedBy: user.id,
+      submittedBy: userId,
       teamId: teamMember.team.id,
       status: 'new',
     }).returning();
@@ -234,7 +244,7 @@ export async function submitDemand(formData: FormData) {
     // 记录活动日志
     await db.insert(activityLogs).values({
       teamId: teamMember.team.id,
-      userId: user.id,
+      userId: userId,
       action: ActivityType.CREATE_DEMAND,
       ipAddress: '127.0.0.1', // 实际应从请求中获取
     });
