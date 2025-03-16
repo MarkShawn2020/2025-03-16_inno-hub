@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 
 // 使用动态导入
-const DemandForm = dynamic(() => import('./Form'), { ssr: true });
+const DemandForm = dynamic(() => import('./form'), { ssr: true });
 
 export const metadata: Metadata = {
   title: '提交企业需求 | 商机匹配平台',
