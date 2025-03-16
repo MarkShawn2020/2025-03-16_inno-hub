@@ -106,7 +106,7 @@ function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center mr-10">
               <CircleIcon className="h-6 w-6 text-orange-500" />
-              <span className="ml-2 text-xl font-semibold text-gray-900">InnoLink - 基于 DeepSeek 的东升商机匹配平台</span>
+              <span className="ml-2 text-xl font-semibold text-gray-900">InnoHub</span>
             </Link>
             
             {/* 桌面导航 */}
@@ -171,10 +171,23 @@ function Header() {
   );
 }
 
+function NotificationBanner() {
+  return (
+    <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-2.5 px-4 text-center shadow-md animate-pulse">
+      <p className="text-sm font-bold flex items-center justify-center">
+        <span className="inline-block mr-2">🚀</span>
+        已接入满血版 DeepSeek
+        <span className="inline-block ml-2">✨</span>
+      </p>
+    </div>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <section className="flex flex-col min-h-screen">
       <Header />
+      <NotificationBanner />
       <main className="flex-1 overflow-auto">
         <div className="container mx-auto py-6 px-4 lg:px-8">
           {children}
