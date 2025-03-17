@@ -7,12 +7,14 @@ import { eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2, Trash2 } from 'lucide-react';
 import { DemandStatusBadge } from '../components/demand-status-badge';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { unstable_noStore } from 'next/cache';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { UserAvatar } from '@/components/UserAvatar';
+import DeleteDemandButton from '../components/delete-demand-button';
+import { getUser } from '@/lib/db/queries';
 
 interface DemandPageProps {
   params: Promise<{
@@ -153,6 +155,8 @@ async function getDemand(id: number) {
 export default async function DemandPage({ params }: DemandPageProps) {
   unstable_noStore() // opt out before we even get to the try/catch
 
+  // 获取当前登录用户
+  const currentUser = await getUser();
 
   try {
     // 必须先await params再访问其属性
@@ -214,6 +218,9 @@ export default async function DemandPage({ params }: DemandPageProps) {
               <Link href={`/dashboard/demands/${demand.id}/matches`}>
                 <Button>查看匹配结果</Button>
               </Link>
+              {currentUser && demand.submitter && currentUser.id === demand.submitter.id && (
+                <DeleteDemandButton demandId={demand.id} title={demand.title} />
+              )}
             </div>
           </div>
         </div>

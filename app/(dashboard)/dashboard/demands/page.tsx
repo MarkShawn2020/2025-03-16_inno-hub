@@ -9,14 +9,11 @@ import { unstable_noStore } from 'next/cache';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { UserAvatar } from '@/components/UserAvatar';
 import { deleteDemand } from './actions';
-import DeleteDemandButton from './components/delete-demand-button';
 
 export const metadata: Metadata = {
   title: '企业需求管理 | 商机匹配平台',
   description: '管理您提交的企业需求和匹配结果',
 };
-
-
 
 export default async function DemandsPage() {
   unstable_noStore() // opt out before we even get to the try/catch
@@ -113,9 +110,6 @@ export default async function DemandsPage() {
                         </Button>
                       </Link>
 
-                      {currentUser && demand.submitter && currentUser.id === demand.submitter.id && (
-                        <DeleteDemandButton demandId={demand.id} title={demand.title} />
-                      )}
                     </div>
                   </td>
                 </tr>
