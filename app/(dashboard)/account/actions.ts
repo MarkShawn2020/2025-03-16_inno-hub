@@ -35,12 +35,22 @@ export async function updateUserProfile(formData: FormData) {
       phone: formData.get('phone'),
     });
 
+    // 准备profileData - 包含额外的用户信息
+    const profileData = {
+      // 保留可能存在的其他profileData字段
+      ...((user.profileData as any) || {}),
+      // 新值覆盖旧值
+      company: validatedData.company || null,
+      position: validatedData.position || null,
+      phone: validatedData.phone || null,
+    };
+
     // 更新用户记录
     await db.update(users)
       .set({
         name: validatedData.name,
         updatedAt: new Date(),
-        // 不使用metadata字段，因为schema中没有定义
+        profileData: profileData, // 现在可以使用profileData字段了
       })
       .where(eq(users.id, user.id));
 

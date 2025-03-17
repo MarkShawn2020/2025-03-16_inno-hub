@@ -17,6 +17,7 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: varchar('role', { length: 20 }).notNull().default('member'),
+  profileData: jsonb('profile_data'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   deletedAt: timestamp('deleted_at'),
@@ -322,9 +323,7 @@ export enum ActivityType {
   ACCEPT_INVITATION = 'ACCEPT_INVITATION',
   CREATE_DEMAND = 'CREATE_DEMAND',
   UPDATE_DEMAND = 'UPDATE_DEMAND',
-  DELETE_DEMAND = 'DELETE_DEMAND',
   CREATE_COMPANY = 'CREATE_COMPANY',
   UPDATE_COMPANY = 'UPDATE_COMPANY',
-  DELETE_COMPANY = 'DELETE_COMPANY',
   IMPORT_COMPANIES = 'IMPORT_COMPANIES',
 }

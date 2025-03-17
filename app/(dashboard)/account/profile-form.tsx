@@ -39,6 +39,7 @@ type User = {
   name: string | null;
   email: string;
   role: string;
+  profileData?: any; // 添加profileData字段
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -60,14 +61,17 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     );
   }
 
+  // 从profileData中提取用户额外信息
+  const userProfileData = user.profileData || {};
+
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: user.name || '',
-      company: '',
-      position: '',
-      phone: '',
+      company: userProfileData.company || '',
+      position: userProfileData.position || '',
+      phone: userProfileData.phone || '',
     },
   });
 
