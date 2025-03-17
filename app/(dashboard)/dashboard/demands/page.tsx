@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { DemandStatusBadge } from './components/demand-status-badge';
 import { formatDate } from '@/lib/utils';
-import { getDemandsForUser } from '@/lib/db/queries';
+import { getDemandsForUser, getUser } from '@/lib/db/queries';
 import { unstable_noStore } from 'next/cache';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { UserAvatar } from '@/components/UserAvatar';
+import { deleteDemand } from './actions';
+import DeleteDemandButton from './components/delete-demand-button';
 
 export const metadata: Metadata = {
   title: '企业需求管理 | 商机匹配平台',
@@ -20,6 +22,7 @@ export default async function DemandsPage() {
   unstable_noStore() // opt out before we even get to the try/catch
 
   const allDemands = await getDemandsForUser();
+  const currentUser = await getUser();
 
   return (
     <div className="container mx-auto py-10">
@@ -112,6 +115,9 @@ export default async function DemandsPage() {
                       <Link href={`/dashboard/demands/${demand.id}/matches`}>
                         <Button size="sm">查看匹配</Button>
                       </Link>
+                      {currentUser && demand.submitter && currentUser.id === demand.submitter.id && (
+                        <DeleteDemandButton demandId={demand.id} title={demand.title} />
+                      )}
                     </div>
                   </td>
                 </tr>
