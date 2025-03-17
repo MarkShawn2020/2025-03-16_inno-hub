@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Building, Star, Shield, Lock } from 'lucide-react';
 import { getUser } from '@/lib/db/queries';
+import DeleteCompanyButton from './delete-button';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   // 确保ID是有效的数字
@@ -94,9 +95,12 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
           </div>
           
           {isOwner && (
-            <Link href={`/dashboard/companies/${companyId}/edit`}>
-              <Button variant="outline">编辑企业</Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href={`/dashboard/companies/${companyId}/edit`}>
+                <Button variant="outline">编辑企业</Button>
+              </Link>
+              <DeleteCompanyButton companyId={companyId} companyName={company.name} />
+            </div>
           )}
         </div>
       </div>

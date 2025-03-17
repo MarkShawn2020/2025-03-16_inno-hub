@@ -7,10 +7,13 @@ import { eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2, User } from 'lucide-react';
 import { DemandStatusBadge } from '../components/demand-status-badge';
 import { formatDate } from '@/lib/utils';
 import { unstable_noStore } from 'next/cache';
+import DeleteDemandButton from './delete-button';
+import { getDemandById } from '@/lib/db/queries';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface DemandPageProps {
   params: Promise<{
@@ -53,55 +56,29 @@ function createMockDemand(id: number) {
         weight: 0.5,
       }
     ],
-    matchResults: []
+    matchResults: [],
+    submitter: {
+      id: 1,
+      name: '测试用户',
+      email: 'test@example.com'
+    }
   };
 }
 
-// 简化版的获取需求函数
+// 更新获取需求函数，使用新的查询函数
 async function getDemand(id: number) {
   console.log(`===== 尝试获取需求 ID: ${id} =====`);
   
   try {
-    // 先尝试获取基本需求信息
-    const demand = await db.query.demands.findFirst({
-      where: eq(demands.id, id),
-    });
-    
-    console.log('数据库查询结果:', demand ? `找到需求: ${demand.title}` : '需求不存在');
+    // 尝试使用新的查询函数获取需求详情
+    const demand = await getDemandById(id);
     
     if (!demand) {
       console.log(`警告: 数据库中不存在ID为${id}的需求，返回模拟数据以便调试`);
       return createMockDemand(id);
     }
     
-    // 尝试获取关联数据
-    try {
-      const fullDemand = await db.query.demands.findFirst({
-        where: eq(demands.id, id),
-        with: {
-          modules: true,
-          matchResults: {
-            with: {
-              company: true,
-            },
-          },
-        },
-      });
-      
-      if (fullDemand) {
-        console.log(`关联数据加载成功 - 模块数: ${fullDemand.modules.length}`);
-        return fullDemand;
-      }
-    } catch (error) {
-      console.error('加载关联数据出错:', error);
-    }
-    
-    // 如果关联数据获取失败，添加空的关联数据
-    return {
-      ...demand,
-      modules: [],
-      matchResults: []
-    };
+    return demand;
   } catch (error) {
     console.error('获取需求数据时出错:', error);
     // 出错时返回模拟数据，确保页面不会崩溃
@@ -164,6 +141,19 @@ export default async function DemandPage({ params }: DemandPageProps) {
                 <span className="text-sm text-gray-500">
                   提交于 {formatDate(demand.createdAt)}
                 </span>
+                {demand.submitter && (
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <span>提交人:</span>
+                    <div className="flex items-center gap-1">
+                      <Avatar className="h-5 w-5">
+                        <AvatarFallback className="text-xs">
+                          {demand.submitter.name ? demand.submitter.name.charAt(0).toUpperCase() : '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>{demand.submitter.name}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex gap-2">
@@ -173,6 +163,7 @@ export default async function DemandPage({ params }: DemandPageProps) {
               <Link href={`/dashboard/demands/${demand.id}/matches`}>
                 <Button>查看匹配结果</Button>
               </Link>
+              <DeleteDemandButton demandId={demand.id} demandTitle={demand.title} />
             </div>
           </div>
         </div>

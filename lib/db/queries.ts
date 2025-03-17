@@ -143,6 +143,13 @@ export async function getDemandsForUser() {
       where: eq(demands.submittedBy, user.id),
       orderBy: [desc(demands.createdAt)],
       with: {
+        submitter: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        },
         matchResults: {
           with: {
             company: true,
@@ -153,3 +160,31 @@ export async function getDemandsForUser() {
 
     return userDemands;
   }
+
+export async function getDemandById(demandId: number) {
+  try {
+    const demand = await db.query.demands.findFirst({
+      where: eq(demands.id, demandId),
+      with: {
+        submitter: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        },
+        modules: true,
+        matchResults: {
+          with: {
+            company: true,
+          },
+        },
+      },
+    });
+
+    return demand;
+  } catch (error) {
+    console.error('获取需求详情出错:', error);
+    return null;
+  }
+}
