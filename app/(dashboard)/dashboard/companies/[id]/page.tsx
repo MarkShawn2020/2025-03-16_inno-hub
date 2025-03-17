@@ -12,9 +12,18 @@ import { ArrowLeft, Building, Star, Shield, Lock } from 'lucide-react';
 import { getUser } from '@/lib/db/queries';
 import DeleteCompanyButton from './delete-button';
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+interface CompanyPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function generateMetadata({ params }: CompanyPageProps): Promise<Metadata> {
+  // 解析 params
+  const resolvedParams = await params;
+  
   // 确保ID是有效的数字
-  const id = Number(params.id);
+  const id = Number(resolvedParams.id);
   if (isNaN(id)) {
     return {
       title: '企业未找到 | 商机共振平台',
@@ -43,12 +52,15 @@ async function getCompany(id: number) {
   });
 }
 
-export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
+export default async function CompanyDetailPage({ params }: CompanyPageProps) {
   // 获取当前用户
   const user = await getUser();
   
+  // 解析 params
+  const resolvedParams = await params;
+  
   // 确保ID是有效的数字
-  const companyId = Number(params.id);
+  const companyId = Number(resolvedParams.id);
   if (isNaN(companyId)) {
     notFound();
   }

@@ -14,6 +14,10 @@ import {
   FilePenLine,
   Edit,
   Upload,
+  Trash,
+  Search,
+  RefreshCw,
+  Eye,
   type LucideIcon,
 } from 'lucide-react';
 import { ActivityType } from '@/lib/db/schema';
@@ -32,9 +36,14 @@ const iconMap: Record<ActivityType, LucideIcon> = {
   [ActivityType.ACCEPT_INVITATION]: CheckCircle,
   [ActivityType.CREATE_DEMAND]: FileText,
   [ActivityType.UPDATE_DEMAND]: FilePenLine,
+  [ActivityType.DELETE_DEMAND]: Trash,
   [ActivityType.CREATE_COMPANY]: Building,
   [ActivityType.UPDATE_COMPANY]: Edit,
+  [ActivityType.DELETE_COMPANY]: Trash,
   [ActivityType.IMPORT_COMPANIES]: Upload,
+  [ActivityType.MATCH_DEMAND]: Search,
+  [ActivityType.UPDATE_DEMAND_STATUS]: RefreshCw,
+  [ActivityType.VIEW_MATCH_RESULTS]: Eye,
 };
 
 function getRelativeTime(date: Date) {
@@ -77,12 +86,22 @@ function formatAction(action: ActivityType): string {
       return 'You created a new demand';
     case ActivityType.UPDATE_DEMAND:
       return 'You updated a demand';
+    case ActivityType.DELETE_DEMAND:
+      return 'You deleted a demand';
     case ActivityType.CREATE_COMPANY:
       return '创建了企业';
     case ActivityType.UPDATE_COMPANY:
       return '更新了企业信息';
+    case ActivityType.DELETE_COMPANY:
+      return '删除了企业';
     case ActivityType.IMPORT_COMPANIES:
       return '批量导入了企业数据';
+    case ActivityType.MATCH_DEMAND:
+      return 'You matched a demand';
+    case ActivityType.UPDATE_DEMAND_STATUS:
+      return 'You updated a demand status';
+    case ActivityType.VIEW_MATCH_RESULTS:
+      return 'You viewed match results';
     default:
       return 'Unknown action occurred';
   }
