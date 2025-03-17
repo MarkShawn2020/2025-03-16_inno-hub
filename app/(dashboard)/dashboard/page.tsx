@@ -17,7 +17,6 @@ export default async function DashboardPage() {
   // 获取统计数据
   const stats = await getDashboardStats();
   const recentDemands = await getRecentDemands(2);
-  const recentMatches = await getRecentMatches(2);
   const industryDistribution = await getCompanyIndustryDistribution();
 
   return (
@@ -138,7 +137,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 gap-6 mb-8">
         <Card>
           <CardHeader>
             <CardTitle>最近需求</CardTitle>
@@ -191,51 +190,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>最新匹配</CardTitle>
-            <CardDescription>
-              系统为您找到的最新匹配结果
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentMatches && recentMatches.length > 0 ? (
-                recentMatches.map(match => (
-                  <div className="border rounded-md p-4" key={match.id}>
-                    <div className="flex justify-between mb-2">
-                      <h3 className="font-medium">{match.demand?.title || '未知需求'}</h3>
-                      <span className="text-sm text-gray-500">
-                        {match.createdAt ? formatDistanceToNow(new Date(match.createdAt), { addSuffix: true, locale: zhCN }) : ''}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center mb-3">
-                      <div>
-                        <p className="font-medium">{match.company?.name || '未知企业'}</p>
-                        <p className="text-sm text-gray-600">匹配度: {Math.round(match.score * 100)}%</p>
-                      </div>
-                      <Link href={`/dashboard/matches/${match.id}`} className="text-sm text-blue-600 hover:underline">
-                        查看详情
-                      </Link>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  暂无匹配记录
-                </div>
-              )}
-              
-              {recentMatches && recentMatches.length > 0 && (
-                <div className="text-center">
-                  <Link href="/dashboard/matches" className="text-sm text-blue-600 hover:underline">
-                    查看全部匹配
-                  </Link>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
       
       {/* 图表区域 */}
