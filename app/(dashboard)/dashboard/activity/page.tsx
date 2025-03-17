@@ -13,6 +13,7 @@ import {
   Building,
   FilePenLine,
   Edit,
+  Upload,
   type LucideIcon,
 } from 'lucide-react';
 import { ActivityType } from '@/lib/db/schema';
@@ -33,6 +34,7 @@ const iconMap: Record<ActivityType, LucideIcon> = {
   [ActivityType.UPDATE_DEMAND]: FilePenLine,
   [ActivityType.CREATE_COMPANY]: Building,
   [ActivityType.UPDATE_COMPANY]: Edit,
+  [ActivityType.IMPORT_COMPANIES]: Upload,
 };
 
 function getRelativeTime(date: Date) {
@@ -76,9 +78,11 @@ function formatAction(action: ActivityType): string {
     case ActivityType.UPDATE_DEMAND:
       return 'You updated a demand';
     case ActivityType.CREATE_COMPANY:
-      return 'You created a new company';
+      return '创建了企业';
     case ActivityType.UPDATE_COMPANY:
-      return 'You updated a company';
+      return '更新了企业信息';
+    case ActivityType.IMPORT_COMPANIES:
+      return '批量导入了企业数据';
     default:
       return 'Unknown action occurred';
   }

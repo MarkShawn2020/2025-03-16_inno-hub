@@ -12,7 +12,15 @@ import { ArrowLeft, Building, Star, Shield, Lock } from 'lucide-react';
 import { getUser } from '@/lib/db/queries';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const company = await getCompany(parseInt(params.id));
+  // 确保ID是有效的数字
+  const id = Number(params.id);
+  if (isNaN(id)) {
+    return {
+      title: '企业未找到 | 商机匹配平台',
+    };
+  }
+  
+  const company = await getCompany(id);
   
   if (!company) {
     return {
@@ -27,15 +35,23 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 async function getCompany(id: number) {
+  if (isNaN(id)) return null;
+  
   return db.query.companies.findFirst({
     where: eq(companies.id, id),
   });
 }
 
 export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
-  // 获取当前用户和企业信息
+  // 获取当前用户
   const user = await getUser();
-  const companyId = parseInt(params.id);
+  
+  // 确保ID是有效的数字
+  const companyId = Number(params.id);
+  if (isNaN(companyId)) {
+    notFound();
+  }
+  
   const company = await getCompany(companyId);
   
   if (!company) {
