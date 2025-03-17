@@ -8,19 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Mail, Phone, Building } from 'lucide-react';
 import { unstable_noStore } from 'next/cache';
-import { ContactButtons } from './components/ContactButtons';
 
 interface ContactPageProps {
-  params: Promise<{
+  params: {
     id: string;
     matchId: string;
-  }>;
+  };
 }
-
-export const metadata: Metadata = {
-  title: '联系企业 | 商机匹配平台',
-  description: '联系匹配的企业，开始合作洽谈',
-};
 
 async function getMatchDetails(demandId: number, matchId: number) {
   unstable_noStore();
@@ -50,10 +44,8 @@ async function getMatchDetails(demandId: number, matchId: number) {
 }
 
 export default async function ContactPage({ params }: ContactPageProps) {
-  // 修复：先await params再使用其属性
-  const resolvedParams = await params;
-  const demandId = parseInt(resolvedParams.id);
-  const matchId = parseInt(resolvedParams.matchId);
+  const demandId = parseInt(params.id);
+  const matchId = parseInt(params.matchId);
   
   if (isNaN(demandId) || isNaN(matchId)) {
     notFound();
@@ -154,15 +146,40 @@ export default async function ContactPage({ params }: ContactPageProps) {
             <p className="text-sm text-gray-600">
               目前此功能正在开发中，您可以通过企业提供的联系电话直接联系。后续我们会提供更多便捷的联系方式。
             </p>
-            
-            {/* 使用客户端组件处理交互 */}
-            <ContactButtons 
-              demandId={demandId} 
-              phoneNumber={match.company.contactPhone || undefined} 
-            />
+            <div className="flex gap-4">
+              <Button disabled>发送邮件</Button>
+              <Button disabled>在线聊天</Button>
+              <Button>拨打电话</Button>
+            </div>
           </div>
         </CardContent>
+        <CardFooter className="border-t pt-6 flex justify-between">
+          <Button variant="outline" onClick={() => window.history.back()}>
+            返回
+          </Button>
+          <Link href={`/dashboard/demands/${demandId}/matches`}>
+            <Button>查看其他匹配</Button>
+          </Link>
+        </CardFooter>
       </Card>
     </div>
   );
+}
+
+export async function generateMetadata({ params }: ContactPageProps): Promise<Metadata> {  
+  const match = await getMatchDetails(
+    parseInt(params.id), 
+    parseInt(params.matchId)
+  );
+  
+  if (!match) {
+    return {
+      title: '联系详情 | 商机共振平台',
+    };
+  }
+  
+  return {
+    title: `联系 ${match.company.name} | 商机共振平台`,
+    description: `与匹配企业${match.company.name}取得联系`,
+  };
 } 

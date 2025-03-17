@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">商机匹配平台概览</h1>
+      <h1 className="text-3xl font-bold mb-6">商机共振平台概览</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">企业数量</CardTitle>
+            <CardTitle className="text-sm font-medium">总企业数</CardTitle>
             <Building className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">匹配成功</CardTitle>
+            <CardTitle className="text-sm font-medium">总线索数</CardTitle>
             <BriefcaseBusiness className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
@@ -110,11 +110,11 @@ export default async function DashboardPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">匹配率</CardTitle>
+            <CardTitle className="text-sm font-medium">总成交数</CardTitle>
             <BarChart3 className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.matchRate || 0}%</div>
+            <div className="text-2xl font-bold text-gray-500">此指标还需设计</div>
             <p className="text-xs text-gray-500 mt-1">
               {stats?.matchRateChange && stats.matchRateChange > 0 ? (
                 <span className="text-green-500 inline-flex items-center">

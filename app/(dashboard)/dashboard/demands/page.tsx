@@ -13,7 +13,7 @@ import DeleteDemandButton from './components/delete-demand-button';
 import { DemandWordCloud } from './components/demand-word-cloud';
 
 export const metadata: Metadata = {
-  title: '企业需求管理 | 商机匹配平台',
+  title: '企业需求管理 | 商机共振平台',
   description: '管理您提交的企业需求和匹配结果',
 };
 
@@ -26,7 +26,7 @@ export default async function DemandsPage() {
   const currentUser = await getUser();
 
   return (
-    <div className="container mx-auto py-10 px-4 sm:px-6">
+    <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">企业需求管理</h1>
         <Link href="/dashboard/demands/new">
@@ -51,91 +51,81 @@ export default async function DemandsPage() {
           </Link>
         </div>
       ) : (
-        <>
-          {/* 词云视图 */}
-          <div className="mb-8 max-w-full">
-            <DemandWordCloud demands={allDemands} />
-          </div>
-          
-          {/* 需求列表 */}
-          <div className="overflow-x-auto">
-            <div className="shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                      需求标题
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      提交时间
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      状态
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      匹配企业数
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      提交人
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {allDemands.map((demand) => (
-                    <tr key={demand.id}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                        <Link
-                          href={`/dashboard/demands/${demand.id}`}
-                          className="hover:text-orange-500 hover:underline"
-                        >
-                          {demand.title}
-                        </Link>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {formatDate(demand.createdAt)}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <DemandStatusBadge status={demand.status} />
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {demand.matchResults.length}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-2">
-                          <UserAvatar 
-                            user={demand.submitter} 
-                            className="h-6 w-6 ring-1 ring-gray-100" 
-                            fallbackClassName="text-xs"
-                            showBorder={false}
-                          />
-                          <span>{demand.submitter?.name || '未知用户'}</span>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <div className="flex space-x-2">
-                          <Link href={`/dashboard/demands/${demand.id}`}>
-                            <Button variant="outline" size="sm">
-                              查看详情
-                            </Button>
-                          </Link>
-                          <Link href={`/dashboard/demands/${demand.id}/matches`}>
-                            <Button size="sm">查看匹配</Button>
-                          </Link>
-                          {currentUser && demand.submitter && currentUser.id === demand.submitter.id && (
-                            <DeleteDemandButton demandId={demand.id} title={demand.title} />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
+        <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+          <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
+                  需求标题
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  提交时间
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  状态
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  匹配企业数
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  提交人
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {allDemands.map((demand) => (
+                <tr key={demand.id}>
+                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
+                    <Link
+                      href={`/dashboard/demands/${demand.id}`}
+                      className="hover:text-orange-500 hover:underline"
+                    >
+                      {demand.title}
+                    </Link>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {formatDate(demand.createdAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <DemandStatusBadge status={demand.status} />
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {demand.matchResults.length}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <UserAvatar 
+                        user={demand.submitter} 
+                        className="h-6 w-6 ring-1 ring-gray-100" 
+                        fallbackClassName="text-xs"
+                        showBorder={false}
+                      />
+                      <span>{demand.submitter?.name || '未知用户'}</span>
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <div className="flex space-x-2">
+                      <Link href={`/dashboard/demands/${demand.id}`}>
+                        <Button variant="outline" size="sm">
+                          查看详情
+                        </Button>
+                      </Link>
+                      <Link href={`/dashboard/demands/${demand.id}/matches`}>
+                        <Button size="sm">查看匹配</Button>
+                      </Link>
+                      {currentUser && demand.submitter && currentUser.id === demand.submitter.id && (
+                        <DeleteDemandButton demandId={demand.id} title={demand.title} />
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

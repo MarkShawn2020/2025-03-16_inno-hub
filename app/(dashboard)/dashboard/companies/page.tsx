@@ -11,7 +11,7 @@ import { getCompanyIndustryDistribution, getUser } from '@/lib/db/queries';
 import { redirect } from 'next/navigation';
 import IndustryCharts from '../industry-charts';
 export const metadata: Metadata = {
-  title: '企业管理 | 商机匹配平台',
+  title: '企业管理 | 商机共振平台',
   description: '管理您的企业数据库',
 };
 

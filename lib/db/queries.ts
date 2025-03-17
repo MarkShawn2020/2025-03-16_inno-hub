@@ -169,7 +169,7 @@ export async function getDashboardStats() {
   // 获取总需求数
   const totalDemands = await db.select({ count: count() }).from(demands);
   
-  // 获取企业数量
+  // 获取总企业数
   const totalCompanies = await db.select({ count: count() }).from(companies);
   
   // 获取匹配成功的数量

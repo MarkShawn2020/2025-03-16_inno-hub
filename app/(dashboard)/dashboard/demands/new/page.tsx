@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 const DemandForm = dynamic(() => import('./form'), { ssr: true });
 
 export const metadata: Metadata = {
-  title: '提交企业需求 | 商机匹配平台',
+  title: '提交企业需求 | 商机共振平台',
   description: '提交您的企业需求，我们将为您匹配最合适的合作伙伴',
 };
 

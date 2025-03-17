@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const id = Number(params.id);
   if (isNaN(id)) {
     return {
-      title: '企业未找到 | 商机匹配平台',
+      title: '企业未找到 | 商机共振平台',
     };
   }
   
@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   
   if (!company) {
     return {
-      title: '企业未找到 | 商机匹配平台',
+      title: '企业未找到 | 商机共振平台',
     };
   }
   
   return {
-    title: `${company.name} | 商机匹配平台`,
+    title: `${company.name} | 商机共振平台`,
     description: company.description || `查看${company.name}的详细信息`,
   };
 }

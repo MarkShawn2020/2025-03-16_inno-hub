@@ -67,7 +67,7 @@ interface DemandData {
 export async function generateMetadata({ params }: DemandPageProps): Promise<Metadata> {
   // 基本元数据
   return {
-    title: '需求详情 | 商机匹配平台',
+    title: '需求详情 | 商机共振平台',
   };
 }
 

@@ -35,12 +35,12 @@ export async function generateMetadata({ params }: MatchesPageProps): Promise<Me
 
   if (!demand) {
     return {
-      title: '需求不存在 | 商机匹配平台',
+      title: '需求不存在 | 商机共振平台',
     };
   }
 
   return {
-    title: `${demand.title} - 匹配结果 | 商机匹配平台`,
+    title: `${demand.title} - 匹配结果 | 商机共振平台`,
     description: `查看《${demand.title}》的企业匹配结果`,
   };
 }

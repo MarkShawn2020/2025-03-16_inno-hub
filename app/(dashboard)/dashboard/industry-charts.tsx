@@ -92,7 +92,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     return (
       <div className="bg-white p-2 border rounded shadow text-xs">
         <p className="font-semibold">{data.name}</p>
-        <p>企业数量: <span className="font-medium">{data.value}家</span></p>
+        <p>总企业数: <span className="font-medium">{data.value}家</span></p>
         <p>占比: <span className="font-medium">{((data.value / payload[0].value) * 100).toFixed(1)}%</span></p>
       </div>
     );
@@ -108,7 +108,7 @@ export default function IndustryCharts({ industryDistribution }: IndustryChartsP
         <CardHeader>
           <CardTitle>企业行业分布 (矩形树图)</CardTitle>
           <CardDescription>
-            矩形大小表示各行业企业数量占比
+            矩形大小表示各行业总企业数占比
           </CardDescription>
         </CardHeader>
         <CardContent className="h-80">

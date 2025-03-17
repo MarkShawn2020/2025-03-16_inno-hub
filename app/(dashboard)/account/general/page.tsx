@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: '通用设置 | 商机匹配平台',
+  title: '通用设置 | 商机共振平台',
   description: '管理您的通用设置',
 };
 
