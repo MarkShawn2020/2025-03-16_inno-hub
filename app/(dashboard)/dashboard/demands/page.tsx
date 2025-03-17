@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default async function DemandsPage() {
   unstable_noStore() // opt out before we even get to the try/catch
 
-  const userDemands = await getDemandsForUser();
+  const allDemands = await getDemandsForUser();
 
   return (
     <div className="container mx-auto py-10">
@@ -33,11 +33,11 @@ export default async function DemandsPage() {
         </Link>
       </div>
 
-      {userDemands.length === 0 ? (
+      {allDemands.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <h3 className="text-lg font-medium text-gray-900 mb-2">暂无需求记录</h3>
           <p className="text-gray-500 mb-6">
-            您还没有提交任何企业需求，点击"新增需求"按钮开始匹配合作伙伴
+            系统中还没有任何企业需求，点击"新增需求"按钮添加第一个需求
           </p>
           <Link href="/dashboard/demands/new">
             <Button>
@@ -72,7 +72,7 @@ export default async function DemandsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {userDemands.map((demand) => (
+              {allDemands.map((demand) => (
                 <tr key={demand.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
                     <Link
