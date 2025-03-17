@@ -32,15 +32,26 @@ export async function generateMetadata({ params }: DemandPageProps): Promise<Met
  * 这样即使数据库中没有对应需求，页面也能渲染出内容以便进行调试
  */
 function createMockDemand(id: number) {
+  const mockDate = new Date();
   return {
     id,
     title: `测试需求 ${id}`,
     description: '这是一个测试需求，用于调试页面显示',
     status: 'new',
-    createdAt: new Date(),
+    createdAt: mockDate,
     budget: 100000,
     timeline: '3个月',
     cooperationType: '技术合作',
+    submitter: {
+      id: 1,
+      name: '测试用户',
+      email: 'test@example.com',
+      passwordHash: '[已加密]',
+      role: 'member',
+      createdAt: mockDate,
+      updatedAt: mockDate,
+      deletedAt: null
+    },
     modules: [
       {
         id: 1,
@@ -82,6 +93,7 @@ async function getDemand(id: number) {
         where: eq(demands.id, id),
         with: {
           modules: true,
+          submitter: true,
           matchResults: {
             with: {
               company: true,
@@ -92,6 +104,22 @@ async function getDemand(id: number) {
       
       if (fullDemand) {
         console.log(`关联数据加载成功 - 模块数: ${fullDemand.modules.length}`);
+        
+        if (!fullDemand.submitter) {
+          console.warn('警告: 找不到需求的提交者信息，使用默认值');
+          const mockDate = new Date();
+          fullDemand.submitter = {
+            id: 0,
+            name: '未知用户',
+            email: 'unknown@example.com',
+            passwordHash: '[已加密]',
+            role: 'member',
+            createdAt: mockDate,
+            updatedAt: mockDate,
+            deletedAt: null
+          };
+        }
+        
         return fullDemand;
       }
     } catch (error) {
@@ -99,8 +127,19 @@ async function getDemand(id: number) {
     }
     
     // 如果关联数据获取失败，添加空的关联数据
+    const mockDate = new Date();
     return {
       ...demand,
+      submitter: {
+        id: 0,
+        name: '未知用户',
+        email: 'unknown@example.com',
+        passwordHash: '[已加密]',
+        role: 'member',
+        createdAt: mockDate,
+        updatedAt: mockDate,
+        deletedAt: null
+      },
       modules: [],
       matchResults: []
     };

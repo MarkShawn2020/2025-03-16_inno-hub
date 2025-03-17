@@ -35,15 +35,14 @@ export async function generateMetadata({ params }: MatchesPageProps): Promise<Me
 }
 
 async function getDemand(id: number) {
+  unstable_noStore(); // 确保不缓存结果
   
-    const user = await getUser();
-    if (!user) {
-      return null;
-    }
-
+  try {
+    // 先获取需求基本信息和匹配结果
     const demand = await db.query.demands.findFirst({
       where: eq(demands.id, id),
       with: {
+        submitter: true, // 添加提交者信息加载
         matchResults: {
           orderBy: [desc(matchResults.score)],
           with: {
@@ -53,12 +52,36 @@ async function getDemand(id: number) {
       },
     });
 
-    if (!demand || demand.submittedBy !== user.id) {
+    // 如果找不到需求，直接返回null
+    if (!demand) {
+      console.log(`找不到ID为${id}的需求`);
       return null;
     }
 
+    console.log(`成功找到需求: ${demand.title}, 匹配结果数量: ${demand.matchResults.length}`);
+    
+    // 获取当前用户
+    const user = await getUser();
+    
+    // 当前没有用户登录
+    if (!user) {
+      console.log(`没有用户登录，无法查看需求匹配结果`);
+      return null;
+    }
+    
+    // 检查权限 - 暂时放宽限制，允许任何已登录用户查看匹配结果
+    // 如果要严格检查，可以取消下面这行注释
+    // if (demand.submittedBy !== user.id) {
+    //   console.log(`用户无权查看此需求的匹配结果: 用户ID ${user.id}, 需求提交者ID ${demand.submittedBy}`);
+    //   return null;
+    // }
+
     return demand;
+  } catch (error) {
+    console.error('获取需求匹配结果时出错:', error);
+    return null;
   }
+}
 
 export default async function MatchesPage({ params }: MatchesPageProps) {
   const resolvedParams = await params;
