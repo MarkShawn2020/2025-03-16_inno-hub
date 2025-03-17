@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   // 获取统计数据
   const stats = await getDashboardStats();
   const recentDemands = await getRecentDemands(2);
-  const industryDistribution = await getCompanyIndustryDistribution();
+
 
   return (
     <div>
@@ -192,8 +192,7 @@ export default async function DashboardPage() {
         
       </div>
       
-      {/* 图表区域 */}
-      <IndustryCharts industryDistribution={industryDistribution} />
+
     </div>
   );
 }

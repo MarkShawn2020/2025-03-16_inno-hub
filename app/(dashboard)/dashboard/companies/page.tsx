@@ -7,8 +7,9 @@ import { eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { UploadIcon, PlusCircle, Star } from 'lucide-react';
-import { getUser } from '@/lib/db/queries';
+import { getCompanyIndustryDistribution, getUser } from '@/lib/db/queries';
 import { redirect } from 'next/navigation';
+import IndustryCharts from '../industry-charts';
 export const metadata: Metadata = {
   title: '企业管理 | 商机匹配平台',
   description: '管理您的企业数据库',
@@ -45,6 +46,7 @@ export default async function CompaniesPage() {
   }
   
   const companies = await getCompanies();
+  const industryDistribution = await getCompanyIndustryDistribution();
   
   return (
     <div className="container mx-auto py-10">
@@ -65,6 +67,9 @@ export default async function CompaniesPage() {
           </Link>
         </div>
       </div>
+
+            {/* 图表区域 */}
+            <IndustryCharts industryDistribution={industryDistribution} />
       
       {companies.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
