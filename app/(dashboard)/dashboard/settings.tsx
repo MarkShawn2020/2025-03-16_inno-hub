@@ -67,6 +67,7 @@ export function Settings({ teamData }: { teamData: TeamDataWithMembers }) {
                 <div className="flex items-center space-x-4">
                   <UserAvatar 
                     user={member.user} 
+                    className="h-10 w-10"
                   />
                   <div>
                     <p className="font-medium">

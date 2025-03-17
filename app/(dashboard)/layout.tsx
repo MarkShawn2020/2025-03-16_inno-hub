@@ -11,7 +11,12 @@ import {
   Building, 
   Link2, 
   Settings,
-  Menu
+  Menu,
+  HomeIcon,
+  Building2Icon,
+  BriefcaseIcon,
+  Cog,
+  UserIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -24,6 +29,8 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { useUser } from '@/lib/auth';
 import { signOut } from '@/app/(login)/actions';
 import { useRouter, usePathname } from 'next/navigation';
+import { Metadata } from 'next';
+import { ComponentProps } from 'react';
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,7 +66,11 @@ function UserMenu() {
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <DropdownMenuTrigger>
-        <UserAvatar user={user} className="cursor-pointer size-9" />
+        <UserAvatar 
+          user={user} 
+          className="cursor-pointer size-9 ring-2 ring-orange-100 hover:ring-orange-200" 
+          showBorder={false}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="flex flex-col gap-1">
         <DropdownMenuItem className="cursor-pointer">
@@ -90,6 +101,8 @@ function Header() {
     { href: '/dashboard/companies', icon: Building, label: '企业管理' },
     { href: '/dashboard/demands', icon: FileText, label: '需求管理' },
     { href: '/dashboard/matches', icon: Link2, label: '匹配结果' },
+    { href: '/dashboard/settings', icon: Cog, label: '设置' },
+    { href: '/avatar-showcase', icon: UserIcon, label: '头像展示' },
   ];
 
   return (
@@ -176,6 +189,13 @@ function NotificationBanner() {
   );
 }
 
+export const metadata: Metadata = {
+  description: 'Free and open-source SaaS boilerplate.',
+};
+
+/**
+ * 主仪表板布局
+ */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <section className="flex flex-col min-h-screen">

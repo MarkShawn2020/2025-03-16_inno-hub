@@ -54,7 +54,11 @@ function UserMenu() {
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <DropdownMenuTrigger>
-        <UserAvatar user={user} className="cursor-pointer size-9" />
+        <UserAvatar 
+          user={user} 
+          className="cursor-pointer size-9 ring-2 ring-orange-100 hover:ring-orange-200" 
+          showBorder={false}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="flex flex-col gap-1">
         <DropdownMenuItem className="cursor-pointer">

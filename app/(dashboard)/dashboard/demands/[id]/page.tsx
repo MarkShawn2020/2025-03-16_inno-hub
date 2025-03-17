@@ -297,8 +297,9 @@ export default async function DemandPage({ params }: DemandPageProps) {
                 <div className="flex items-center gap-1">
                   <UserAvatar 
                     user={demand.submitter} 
-                    className="h-5 w-5"
+                    className="h-5 w-5 ring-1 ring-gray-100"
                     fallbackClassName="text-xs"
+                    showBorder={false}
                   />
                   <span>{demand.submitter.name}</span>
                 </div>

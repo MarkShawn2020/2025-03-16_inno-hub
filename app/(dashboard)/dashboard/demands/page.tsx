@@ -95,8 +95,9 @@ export default async function DemandsPage() {
                     <div className="flex items-center gap-2">
                       <UserAvatar 
                         user={demand.submitter} 
-                        className="h-6 w-6" 
-                        fallbackClassName="text-xs" 
+                        className="h-6 w-6 ring-1 ring-gray-100" 
+                        fallbackClassName="text-xs"
+                        showBorder={false}
                       />
                       <span>{demand.submitter?.name || '未知用户'}</span>
                     </div>
