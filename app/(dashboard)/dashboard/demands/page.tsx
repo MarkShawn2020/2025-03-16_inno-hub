@@ -7,11 +7,14 @@ import { formatDate } from '@/lib/utils';
 import { getDemandsForUser } from '@/lib/db/queries';
 import { unstable_noStore } from 'next/cache';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/UserAvatar';
 
 export const metadata: Metadata = {
   title: '企业需求管理 | 商机匹配平台',
   description: '管理您提交的企业需求和匹配结果',
 };
+
+
 
 export default async function DemandsPage() {
   unstable_noStore() // opt out before we even get to the try/catch
@@ -58,10 +61,10 @@ export default async function DemandsPage() {
                   状态
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  提交人
+                  匹配企业数
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  匹配企业数
+                  提交人
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   操作
@@ -86,17 +89,17 @@ export default async function DemandsPage() {
                     <DemandStatusBadge status={demand.status} />
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {demand.submitter?.name ? demand.submitter.name.charAt(0).toUpperCase() : '?'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{demand.submitter?.name || '未知用户'}</span>
-                    </div>
+                    {demand.matchResults.length}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {demand.matchResults.length}
+                    <div className="flex items-center gap-2">
+                      <UserAvatar 
+                        user={demand.submitter} 
+                        className="h-6 w-6" 
+                        fallbackClassName="text-xs" 
+                      />
+                      <span>{demand.submitter?.name || '未知用户'}</span>
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     <div className="flex space-x-2">
@@ -107,16 +110,6 @@ export default async function DemandsPage() {
                       </Link>
                       <Link href={`/dashboard/demands/${demand.id}/matches`}>
                         <Button size="sm">查看匹配</Button>
-                      </Link>
-                      <Link href={`/dashboard/demands/${demand.id}`}>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="flex items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          删除
-                        </Button>
                       </Link>
                     </div>
                   </td>
