@@ -31,7 +31,7 @@ export default async function DemandsPage() {
         <Link href="/dashboard/demands/new">
           <Button>
             <PlusCircle className="w-4 h-4 mr-2" />
-            新增需求
+            发布需求
           </Button>
         </Link>
       </div>
@@ -40,7 +40,7 @@ export default async function DemandsPage() {
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <h3 className="text-lg font-medium text-gray-900 mb-2">暂无需求记录</h3>
           <p className="text-gray-500 mb-6">
-            系统中还没有任何企业需求，点击"新增需求"按钮添加第一个需求
+            系统中还没有任何企业需求，点击"发布需求"按钮添加第一个需求
           </p>
           <Link href="/dashboard/demands/new">
             <Button>

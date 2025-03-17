@@ -90,7 +90,7 @@ function UserMenu() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+} 
 
 function Header() {
   const pathname = usePathname();
@@ -98,9 +98,8 @@ function Header() {
   
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: '概览' },
-    { href: '/dashboard/companies', icon: Building, label: '企业管理' },
-    { href: '/dashboard/demands', icon: FileText, label: '需求管理' },
-    { href: '/dashboard/matches', icon: Link2, label: '匹配结果' },
+    { href: '/dashboard/companies', icon: Building, label: '企业库' },
+    { href: '/dashboard/demands', icon: FileText, label: '需求库' },
 
   ];
 
