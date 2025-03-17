@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: '活动记录 | 商机匹配平台',
+  title: '活动记录 | 商机共振平台',
   description: '查看您的账户活动记录',
 };
 

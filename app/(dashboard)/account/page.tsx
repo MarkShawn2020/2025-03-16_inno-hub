@@ -5,7 +5,7 @@ import { getUser } from '@/lib/db/queries';
 import ProfileForm from './profile-form';
 
 export const metadata: Metadata = {
-  title: '个人信息 | 商机匹配平台',
+  title: '个人信息 | 商机共振平台',
   description: '管理您的个人信息',
 };
 

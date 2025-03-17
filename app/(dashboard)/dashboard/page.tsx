@@ -24,117 +24,125 @@ export default async function DashboardPage() {
       <h1 className="text-3xl font-bold mb-6">商机共振平台概览</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">总需求数</CardTitle>
-            <FileText className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalDemands || 0}</div>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats?.demandChange && stats.demandChange > 0 ? (
-                <span className="text-green-500 inline-flex items-center">
-                  <ArrowUp className="h-3 w-3 mr-1" />
-                  {stats.demandChange}
-                </span>
-              ) : stats?.demandChange && stats.demandChange < 0 ? (
-                <span className="text-red-500 inline-flex items-center">
-                  <ArrowDown className="h-3 w-3 mr-1" />
-                  {Math.abs(stats.demandChange)}
-                </span>
-              ) : (
-                <span className="text-gray-500 inline-flex items-center">
-                  0
-                </span>
-              )}{' '}
-              vs 上月
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/dashboard/demands" className="block">
+          <Card className="h-full transition-all duration-200 hover:shadow-md hover:border-primary/50 cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">总需求数</CardTitle>
+              <FileText className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.totalDemands || 0}</div>
+              <p className="text-xs text-gray-500 mt-1">
+                {stats?.demandChange && stats.demandChange > 0 ? (
+                  <span className="text-green-500 inline-flex items-center">
+                    <ArrowUp className="h-3 w-3 mr-1" />
+                    {stats.demandChange}
+                  </span>
+                ) : stats?.demandChange && stats.demandChange < 0 ? (
+                  <span className="text-red-500 inline-flex items-center">
+                    <ArrowDown className="h-3 w-3 mr-1" />
+                    {Math.abs(stats.demandChange)}
+                  </span>
+                ) : (
+                  <span className="text-gray-500 inline-flex items-center">
+                    0
+                  </span>
+                )}{' '}
+                vs 上月
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">总企业数</CardTitle>
-            <Building className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalCompanies || 0}</div>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats?.companyChange && stats.companyChange > 0 ? (
-                <span className="text-green-500 inline-flex items-center">
-                  <ArrowUp className="h-3 w-3 mr-1" />
-                  {stats.companyChange}
-                </span>
-              ) : stats?.companyChange && stats.companyChange < 0 ? (
-                <span className="text-red-500 inline-flex items-center">
-                  <ArrowDown className="h-3 w-3 mr-1" />
-                  {Math.abs(stats.companyChange)}
-                </span>
-              ) : (
-                <span className="text-gray-500 inline-flex items-center">
-                  0
-                </span>
-              )}{' '}
-              vs 上月
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/dashboard/companies" className="block">
+          <Card className="h-full transition-all duration-200 hover:shadow-md hover:border-primary/50 cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">总企业数</CardTitle>
+              <Building className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.totalCompanies || 0}</div>
+              <p className="text-xs text-gray-500 mt-1">
+                {stats?.companyChange && stats.companyChange > 0 ? (
+                  <span className="text-green-500 inline-flex items-center">
+                    <ArrowUp className="h-3 w-3 mr-1" />
+                    {stats.companyChange}
+                  </span>
+                ) : stats?.companyChange && stats.companyChange < 0 ? (
+                  <span className="text-red-500 inline-flex items-center">
+                    <ArrowDown className="h-3 w-3 mr-1" />
+                    {Math.abs(stats.companyChange)}
+                  </span>
+                ) : (
+                  <span className="text-gray-500 inline-flex items-center">
+                    0
+                  </span>
+                )}{' '}
+                vs 上月
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">总线索数</CardTitle>
-            <BriefcaseBusiness className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.successfulMatches || 0}</div>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats?.matchChange && stats.matchChange > 0 ? (
-                <span className="text-green-500 inline-flex items-center">
-                  <ArrowUp className="h-3 w-3 mr-1" />
-                  {stats.matchChange}
-                </span>
-              ) : stats?.matchChange && stats.matchChange < 0 ? (
-                <span className="text-red-500 inline-flex items-center">
-                  <ArrowDown className="h-3 w-3 mr-1" />
-                  {Math.abs(stats.matchChange)}
-                </span>
-              ) : (
-                <span className="text-gray-500 inline-flex items-center">
-                  0
-                </span>
-              )}{' '}
-              vs 上月
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/dashboard/demands/matches" className="block pointer-events-none">
+          <Card className="h-full transition-all duration-200 hover:shadow-md hover:border-primary/50 cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">总线索数</CardTitle>
+              <BriefcaseBusiness className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.successfulMatches || 0}</div>
+              <p className="text-xs text-gray-500 mt-1">
+                {stats?.matchChange && stats.matchChange > 0 ? (
+                  <span className="text-green-500 inline-flex items-center">
+                    <ArrowUp className="h-3 w-3 mr-1" />
+                    {stats.matchChange}
+                  </span>
+                ) : stats?.matchChange && stats.matchChange < 0 ? (
+                  <span className="text-red-500 inline-flex items-center">
+                    <ArrowDown className="h-3 w-3 mr-1" />
+                    {Math.abs(stats.matchChange)}
+                  </span>
+                ) : (
+                  <span className="text-gray-500 inline-flex items-center">
+                    0
+                  </span>
+                )}{' '}
+                vs 上月
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">总成交数</CardTitle>
-            <BarChart3 className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-500">此指标还需设计</div>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats?.matchRateChange && stats.matchRateChange > 0 ? (
-                <span className="text-green-500 inline-flex items-center">
-                  <ArrowUp className="h-3 w-3 mr-1" />
-                  {stats.matchRateChange}%
-                </span>
-              ) : stats?.matchRateChange && stats.matchRateChange < 0 ? (
-                <span className="text-red-500 inline-flex items-center">
-                  <ArrowDown className="h-3 w-3 mr-1" />
-                  {Math.abs(stats.matchRateChange)}%
-                </span>
-              ) : (
-                <span className="text-gray-500 inline-flex items-center">
-                  0%
-                </span>
-              )}{' '}
-              vs 上月
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/dashboard/deals" className="block pointer-events-none opacity-80">
+          <Card className="h-full transition-all duration-200 hover:shadow-md hover:border-primary/50 cursor-not-allowed border-dashed">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">总成交数</CardTitle>
+              <BarChart3 className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-500">此指标还需设计</div>
+              <p className="text-xs text-gray-500 mt-1">
+                {stats?.matchRateChange && stats.matchRateChange > 0 ? (
+                  <span className="text-green-500 inline-flex items-center">
+                    <ArrowUp className="h-3 w-3 mr-1" />
+                    {stats.matchRateChange}%
+                  </span>
+                ) : stats?.matchRateChange && stats.matchRateChange < 0 ? (
+                  <span className="text-red-500 inline-flex items-center">
+                    <ArrowDown className="h-3 w-3 mr-1" />
+                    {Math.abs(stats.matchRateChange)}%
+                  </span>
+                ) : (
+                  <span className="text-gray-500 inline-flex items-center">
+                    0%
+                  </span>
+                )}{' '}
+                vs 上月
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
       
       <div className="grid grid-cols-1 gap-6 mb-8">

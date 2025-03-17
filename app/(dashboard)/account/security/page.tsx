@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export const metadata: Metadata = {
-  title: '安全设置 | 商机匹配平台',
+  title: '安全设置 | 商机共振平台',
   description: '管理您的账户安全设置',
 };
 

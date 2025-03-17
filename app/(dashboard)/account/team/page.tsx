@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, MoreHorizontal, Trash2, Edit2, Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: '团队管理 | 商机匹配平台',
+  title: '团队管理 | 商机共振平台',
   description: '管理您的团队成员',
 };
 
@@ -52,7 +52,7 @@ export default function TeamPage() {
         <CardHeader>
           <CardTitle>邀请新成员</CardTitle>
           <CardDescription>
-            向您的团队添加新成员，协同管理商机匹配流程
+            向您的团队添加新成员，协同管理商机共振流程
           </CardDescription>
         </CardHeader>
         <CardContent>
