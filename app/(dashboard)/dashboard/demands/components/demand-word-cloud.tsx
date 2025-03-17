@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -9,7 +9,11 @@ const WordCloud = dynamic(() => import('react-d3-cloud').then(mod => mod.default
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-[300px]">
-      <div className="w-full h-full bg-gray-100 animate-pulse rounded-md" />
+      <div className="w-full h-full bg-slate-100 animate-pulse rounded-md">
+        <div className="h-full w-full flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-rose-500"></div>
+        </div>
+      </div>
     </div>
   ),
 });
@@ -34,7 +38,10 @@ export function DemandWordCloud({ demands }: DemandWordCloudProps) {
   const [words, setWords] = useState<WordCloudData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [hoveredWord, setHoveredWord] = useState<string | null>(null);
+  const [currentColorTheme, setCurrentColorTheme] = useState<string>('rose');
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hasSeenAnimation, setHasSeenAnimation] = useState(false);
 
   // 监听容器宽度变化
   useEffect(() => {
@@ -51,6 +58,45 @@ export function DemandWordCloud({ demands }: DemandWordCloudProps) {
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
+  // 颜色主题方案
+  const colorThemes = useMemo(() => ({
+    rose: [
+      '#fff1f2', '#ffe4e6', '#fecdd3', '#fda4af', '#fb7185', 
+      '#f43f5e', '#e11d48', '#be123c', '#9f1239', '#881337'
+    ],
+    sky: [
+      '#f0f9ff', '#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8',
+      '#0ea5e9', '#0284c7', '#0369a1', '#075985', '#0c4a6e'
+    ],
+    amber: [
+      '#fffbeb', '#fef3c7', '#fde68a', '#fcd34d', '#fbbf24',
+      '#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f'
+    ],
+    emerald: [
+      '#ecfdf5', '#d1fae5', '#a7f3d0', '#6ee7b7', '#34d399', 
+      '#10b981', '#059669', '#047857', '#065f46', '#064e3b'
+    ],
+    violet: [
+      '#f5f3ff', '#ede9fe', '#ddd6fe', '#c4b5fd', '#a78bfa',
+      '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95'
+    ]
+  }), []);
+
+  // 每30秒切换一次颜色主题
+  useEffect(() => {
+    const themes = Object.keys(colorThemes);
+    const interval = setInterval(() => {
+      setCurrentColorTheme(prevTheme => {
+        const currentIndex = themes.indexOf(prevTheme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        return themes[nextIndex];
+      });
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [colorThemes]);
+
+  // 提取关键词
   useEffect(() => {
     if (demands && demands.length > 0) {
       // 提取关键词并计算频率
@@ -92,31 +138,68 @@ export function DemandWordCloud({ demands }: DemandWordCloudProps) {
         .sort((a, b) => b.value - a.value)
         .slice(0, 50); // 最多展示50个词
       
-      setWords(filteredWords);
-      setIsLoading(false);
+      // 添加动画效果：逐步显示词
+      const animateWords = async () => {
+        if (!hasSeenAnimation) {
+          setWords([]);
+          // 每次添加一个词，形成动画效果
+          for (let i = 0; i < filteredWords.length; i++) {
+            setWords(prev => [...prev, filteredWords[i]]);
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+          setHasSeenAnimation(true);
+        } else {
+          setWords(filteredWords);
+        }
+        setIsLoading(false);
+      };
+      
+      animateWords();
     } else {
       setWords([]);
       setIsLoading(false);
     }
-  }, [demands]);
+  }, [demands, hasSeenAnimation]);
   
   // 词云配置 - 根据容器宽度调整字体大小
-  const fontSizeMapper = (word: { value: number }) => {
+  const fontSizeMapper = (word: { value: number, text: string }) => {
     // 根据容器宽度动态调整字体大小
-    const baseSize = Math.min(Math.log2(word.value) * 8 + 12, 40);
+    const baseSize = Math.min(Math.log2(word.value) * 8 + 14, 50);
+    // 如果是悬停词，增大字体
+    if (hoveredWord === word.text) {
+      return Math.min(baseSize * 1.3, 60);
+    }
     if (containerWidth < 640) {
-      return Math.min(baseSize * 0.7, 30); // 小屏幕上字体更小
+      return Math.min(baseSize * 0.7, 35); // 小屏幕上字体更小
     }
     return baseSize;
   };
-  const rotate = () => 0; // 不旋转文字
+
+  // 随机旋转文字，有30%概率旋转
+  const rotate = () => Math.random() > 0.7 ? (Math.random() > 0.5 ? 90 : -90) : 0;
+
+  // 根据当前主题和词频生成颜色
+  const getWordColor = (value: number) => {
+    const currentPalette = colorThemes[currentColorTheme as keyof typeof colorThemes];
+    
+    // 将值归一化到0-9的范围
+    const colorMax = Math.max(...words.map(w => w.value));
+    const colorMin = Math.min(...words.map(w => w.value));
+    const normalizedValue = Math.floor(((value - colorMin) / (colorMax - colorMin || 1)) * 9);
+    
+    // 最小值为8, 确保颜色不会太淡
+    return currentPalette[Math.max(9 - normalizedValue, 3)];
+  };
 
   // 如果没有数据，显示空状态
   if (!isLoading && words.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>需求关键词云</CardTitle>
+      <Card className="bg-gradient-to-r from-slate-50 to-gray-50 shadow-md">
+        <CardHeader className="border-b pb-3">
+          <CardTitle className="text-lg text-gray-700 flex items-center gap-2">
+            <span className="i-lucide-cloud" />
+            需求关键词云
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[250px] bg-gray-50 rounded-md">
@@ -128,36 +211,76 @@ export function DemandWordCloud({ demands }: DemandWordCloudProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>需求关键词云</CardTitle>
+    <Card className="bg-gradient-to-r from-slate-50 to-gray-50 shadow-lg border-t border-l border-r border-b-2 border-b-gray-200 hover:shadow-xl transition-all duration-300">
+      <CardHeader className="border-b pb-3">
+        <CardTitle className="text-lg flex justify-between items-center">
+          <div className="flex items-center gap-2 text-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+              <path d="M22 5a3 3 0 0 0-3-3h-2.207a5.502 5.502 0 0 0-10.702.5"/>
+            </svg>
+            需求关键词云
+          </div>
+          <div className="flex gap-1">
+            {Object.keys(colorThemes).map(theme => (
+              <button
+                key={theme}
+                className={`w-4 h-4 rounded-full ${
+                  currentColorTheme === theme 
+                    ? 'ring-2 ring-offset-2 ring-gray-400'
+                    : 'opacity-60 hover:opacity-100'
+                }`}
+                style={{ 
+                  backgroundColor: colorThemes[theme as keyof typeof colorThemes][5],
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => setCurrentColorTheme(theme)}
+                title={`切换到${theme}主题`}
+              />
+            ))}
+          </div>
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <div 
           ref={containerRef} 
-          className="h-[250px] w-full overflow-hidden"
+          className="h-[300px] w-full overflow-hidden relative"
         >
           {isLoading ? (
-            <div className="w-full h-full bg-gray-100 animate-pulse rounded-md" />
+            <div className="w-full h-full bg-slate-100 rounded-md flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
+            </div>
           ) : (
             containerWidth > 0 && (
-              <WordCloud
-                data={words}
-                fontSize={fontSizeMapper}
-                rotate={rotate}
-                padding={3}
-                font="Arial"
-                width={containerWidth - 20} // 留出边距
-                height={230} // 固定高度
-                fill={(d: { value: number }) => {
-                  // 基于词频生成颜色
-                  const value = d.value;
-                  if (value > 10) return '#e11d48'; // 最高频词
-                  if (value > 5) return '#f43f5e';
-                  if (value > 3) return '#fb7185';
-                  return '#fda4af'; // 低频词
-                }}
-              />
+              <div className="relative transform transition-all duration-500 hover:scale-102">
+                <WordCloud
+                  data={words}
+                  fontSize={fontSizeMapper}
+                  rotate={rotate}
+                  padding={3}
+                  font="Arial"
+                  width={containerWidth - 10}
+                  height={290}
+                  fill={(d: { value: number, text: string }) => {
+                    // 基于词频和当前主题生成颜色
+                    return hoveredWord === d.text 
+                      ? '#000000' // 悬停时变黑色
+                      : getWordColor(d.value);
+                  }}
+                  onWordMouseOver={(_, d) => {
+                    setHoveredWord(d.text);
+                  }}
+                  onWordMouseOut={() => {
+                    setHoveredWord(null);
+                  }}
+                  random={() => 0.5}
+                />
+                {hoveredWord && (
+                  <div className="absolute bottom-2 right-2 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-sm shadow-sm border border-gray-100">
+                    {hoveredWord}
+                  </div>
+                )}
+              </div>
             )
           )}
         </div>
