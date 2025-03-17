@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { DemandStatusBadge } from './components/demand-status-badge';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { getDemandsForUser, getUser } from '@/lib/db/queries';
 import { unstable_noStore } from 'next/cache';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -86,7 +86,7 @@ export default async function DemandsPage() {
                     </Link>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {formatDate(demand.createdAt)}
+                    {formatRelativeTime(demand.createdAt)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     <DemandStatusBadge status={demand.status} />
@@ -112,9 +112,7 @@ export default async function DemandsPage() {
                           查看详情
                         </Button>
                       </Link>
-                      <Link href={`/dashboard/demands/${demand.id}/matches`}>
-                        <Button size="sm">查看匹配</Button>
-                      </Link>
+
                       {currentUser && demand.submitter && currentUser.id === demand.submitter.id && (
                         <DeleteDemandButton demandId={demand.id} title={demand.title} />
                       )}

@@ -9,11 +9,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2 } from 'lucide-react';
 import { DemandStatusBadge } from '../components/demand-status-badge';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { unstable_noStore } from 'next/cache';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { UserAvatar } from '@/components/UserAvatar';
-import DemandStatusControl from './components/demand-status-control';
 
 interface DemandPageProps {
   params: Promise<{
@@ -175,15 +174,9 @@ export default async function DemandPage({ params }: DemandPageProps) {
     console.log('成功获取需求数据，准备渲染页面');
 
     const matchingProgress = 
-      demand.status === 'new' ? 10 :
-      demand.status === 'waiting_match' ? 20 :
+      demand.status === 'new' ? 15 :
       demand.status === 'matching' ? 50 :
-      demand.status === 'matched' ? 70 :
-      demand.status === 'contacting' ? 80 :
-      demand.status === 'in_progress' ? 85 :
-      demand.status === 'delivered' ? 95 :
-      demand.status === 'completed' ? 100 : 
-      demand.status === 'abandoned' || demand.status === 'canceled' ? 0 : 0;
+      demand.status === 'matched' ? 100 : 0;
 
     // 格式化预算显示
     const formatBudget = (budget: number | null) => {
@@ -209,8 +202,8 @@ export default async function DemandPage({ params }: DemandPageProps) {
               <h1 className="text-2xl font-bold mb-2">{demand.title}</h1>
               <div className="flex items-center gap-3">
                 <DemandStatusBadge status={demand.status} />
-                <span className="text-sm text-gray-500">
-                  提交于 {formatDate(demand.createdAt)}
+                <span className="text-gray-500 text-sm">
+                  提交于 {formatRelativeTime(demand.createdAt)}
                 </span>
               </div>
             </div>
@@ -255,27 +248,54 @@ export default async function DemandPage({ params }: DemandPageProps) {
               </div>
             </CardContent>
           </Card>
-
-          <DemandStatusControl 
-            demandId={demand.id} 
-            currentStatus={demand.status} 
-            matchCount={demand.matchResults?.length || 0}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
           <Card>
-            <CardHeader>
-              <CardTitle>需求描述</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">项目信息</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                {demand.description.split('\n').map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+              <div className="space-y-2">
+                {demand.budget && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <CreditCard className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-500">预算:</span>
+                    <span>{formatBudget(demand.budget)}</span>
+                  </div>
+                )}
+                {demand.timeline && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-500">工期:</span>
+                    <span>{demand.timeline}</span>
+                  </div>
+                )}
+                {demand.cooperationType && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <BarChart2 className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-500">合作类型:</span>
+                    <span>{demand.cooperationType}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>需求描述</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose max-w-none">
+                  {demand.description.split('\n').map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           
           <div>
             <Card>
