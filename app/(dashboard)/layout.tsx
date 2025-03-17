@@ -189,10 +189,6 @@ function NotificationBanner() {
   );
 }
 
-export const metadata: Metadata = {
-  description: 'Free and open-source SaaS boilerplate.',
-};
-
 /**
  * 主仪表板布局
  */
