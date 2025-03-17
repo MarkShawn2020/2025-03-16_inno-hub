@@ -7,17 +7,61 @@ import { eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, BarChart2, Calendar, CreditCard, Loader2, Shield, Users, Building, Lock } from 'lucide-react';
 import { DemandStatusBadge } from '../components/demand-status-badge';
 import { formatDate } from '@/lib/utils';
 import { unstable_noStore } from 'next/cache';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { UserAvatar } from '@/components/UserAvatar';
+import { getUser } from '@/lib/db/queries';
+import MatchButton from './components/match-button';
+import DeleteButton from './delete-button';
 
 interface DemandPageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+// 定义需求数据类型
+interface DemandModule {
+  id: number;
+  moduleName: string;
+  description: string;
+  weight: number;
+  demandId: number;
+  createdAt: Date;
+}
+
+interface MatchResult {
+  id: number;
+  score: number;
+  company: {
+    id: number;
+    name: string;
+    category?: string | null;
+    isEastRisingPark?: boolean;
+    logo?: string | null;
+  };
+}
+
+interface DemandData {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  budget: number | null;
+  timeline: string | null;
+  cooperationType: string | null;
+  submitter?: {
+    id: number;
+    name: string | null;
+    email: string;
+  } | null;
+  modules?: DemandModule[];
+  matchResults?: MatchResult[];
 }
 
 export async function generateMetadata({ params }: DemandPageProps): Promise<Metadata> {
@@ -31,7 +75,7 @@ export async function generateMetadata({ params }: DemandPageProps): Promise<Met
  * 初始化一个空的模拟需求数据
  * 这样即使数据库中没有对应需求，页面也能渲染出内容以便进行调试
  */
-function createMockDemand(id: number) {
+function createMockDemand(id: number): DemandData {
   const mockDate = new Date();
   return {
     id,
@@ -39,6 +83,7 @@ function createMockDemand(id: number) {
     description: '这是一个测试需求，用于调试页面显示',
     status: 'new',
     createdAt: mockDate,
+    updatedAt: mockDate,
     budget: 100000,
     timeline: '3个月',
     cooperationType: '技术合作',
@@ -46,11 +91,6 @@ function createMockDemand(id: number) {
       id: 1,
       name: '测试用户',
       email: 'test@example.com',
-      passwordHash: '[已加密]',
-      role: 'member',
-      createdAt: mockDate,
-      updatedAt: mockDate,
-      deletedAt: null
     },
     modules: [
       {
@@ -58,12 +98,8 @@ function createMockDemand(id: number) {
         moduleName: '模块1',
         description: '测试模块描述',
         weight: 0.5,
-      },
-      {
-        id: 2,
-        moduleName: '模块2',
-        description: '测试模块描述2',
-        weight: 0.5,
+        demandId: id,
+        createdAt: mockDate,
       }
     ],
     matchResults: []
@@ -71,7 +107,7 @@ function createMockDemand(id: number) {
 }
 
 // 简化版的获取需求函数
-async function getDemand(id: number) {
+async function getDemand(id: number): Promise<DemandData | null> {
   console.log(`===== 尝试获取需求 ID: ${id} =====`);
   
   try {
@@ -102,57 +138,27 @@ async function getDemand(id: number) {
         },
       });
       
-      if (fullDemand) {
-        console.log(`关联数据加载成功 - 模块数: ${fullDemand.modules.length}`);
-        
-        if (!fullDemand.submitter) {
-          console.warn('警告: 找不到需求的提交者信息，使用默认值');
-          const mockDate = new Date();
-          fullDemand.submitter = {
-            id: 0,
-            name: '未知用户',
-            email: 'unknown@example.com',
-            passwordHash: '[已加密]',
-            role: 'member',
-            createdAt: mockDate,
-            updatedAt: mockDate,
-            deletedAt: null
-          };
-        }
-        
-        return fullDemand;
-      }
+      console.log(
+        `已加载关联数据, 模块数量: ${fullDemand?.modules?.length || 0}, ` +
+        `匹配结果数量: ${fullDemand?.matchResults?.length || 0}, ` +
+        `提交者: ${fullDemand?.submitter?.name || '未找到'}`
+      );
+      
+      return fullDemand as unknown as DemandData;
     } catch (error) {
-      console.error('加载关联数据出错:', error);
+      console.error(`加载关联数据时出错:`, error);
+      console.log(`尝试返回基础需求数据...`);
+      return demand as unknown as DemandData;
     }
-    
-    // 如果关联数据获取失败，添加空的关联数据
-    const mockDate = new Date();
-    return {
-      ...demand,
-      submitter: {
-        id: 0,
-        name: '未知用户',
-        email: 'unknown@example.com',
-        passwordHash: '[已加密]',
-        role: 'member',
-        createdAt: mockDate,
-        updatedAt: mockDate,
-        deletedAt: null
-      },
-      modules: [],
-      matchResults: []
-    };
   } catch (error) {
-    console.error('获取需求数据时出错:', error);
-    // 出错时返回模拟数据，确保页面不会崩溃
+    console.error(`获取需求数据时出错:`, error);
+    console.log(`返回模拟数据以便调试...`);
     return createMockDemand(id);
   }
 }
 
 export default async function DemandPage({ params }: DemandPageProps) {
-  unstable_noStore() // opt out before we even get to the try/catch
-
+  unstable_noStore(); // opt out before we even get to the try/catch
 
   try {
     // 必须先await params再访问其属性
@@ -171,7 +177,17 @@ export default async function DemandPage({ params }: DemandPageProps) {
     console.log(`正在获取需求数据，ID: ${id}`);
     const demand = await getDemand(id);
     
+    if (!demand) {
+      notFound();
+    }
+    
     console.log('成功获取需求数据，准备渲染页面');
+
+    // 获取当前用户
+    const user = await getUser();
+    
+    // 检查用户是否是需求的提交者
+    const isOwner = user && demand.submitter && user.id === demand.submitter.id;
 
     const matchingProgress = 
       demand.status === 'new' ? 15 :
@@ -208,12 +224,28 @@ export default async function DemandPage({ params }: DemandPageProps) {
               </div>
             </div>
             <div className="flex gap-2">
-              <Link href={`/dashboard/demands/${demand.id}/edit`}>
-                <Button variant="outline">编辑需求</Button>
-              </Link>
-              <Link href={`/dashboard/demands/${demand.id}/matches`}>
-                <Button>查看匹配结果</Button>
-              </Link>
+              {isOwner && (
+                <>
+                  <Link href={`/dashboard/demands/${demand.id}/edit`}>
+                    <Button variant="outline">编辑需求</Button>
+                  </Link>
+                  <MatchButton 
+                    demandId={demand.id} 
+                    isOwner={isOwner} 
+                    currentStatus={demand.status}
+                  />
+                </>
+              )}
+              {!isOwner && (
+                <Button 
+                  variant="outline" 
+                  disabled
+                  className="cursor-not-allowed"
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  您不是此需求的所有者
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -242,9 +274,16 @@ export default async function DemandPage({ params }: DemandPageProps) {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold">{demand.matchResults?.length || 0}</div>
-                <Link href={`/dashboard/demands/${demand.id}/matches`}>
-                  <Button variant="outline" size="sm">查看详情</Button>
-                </Link>
+                {isOwner ? (
+                  <Link href={`/dashboard/demands/${demand.id}/matches`}>
+                    <Button variant="outline" size="sm">查看详情</Button>
+                  </Link>
+                ) : (
+                  <Button variant="outline" size="sm" disabled className="cursor-not-allowed">
+                    <Lock className="mr-2 h-4 w-4" />
+                    权限受限
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -258,93 +297,142 @@ export default async function DemandPage({ params }: DemandPageProps) {
                 {demand.budget && (
                   <div className="flex items-center gap-2 text-sm">
                     <CreditCard className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-500">预算:</span>
-                    <span>{formatBudget(demand.budget)}</span>
+                    <span>预算: {formatBudget(demand.budget)}</span>
                   </div>
                 )}
                 {demand.timeline && (
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-500">工期:</span>
-                    <span>{demand.timeline}</span>
+                    <span>时间线: {demand.timeline}</span>
                   </div>
                 )}
                 {demand.cooperationType && (
                   <div className="flex items-center gap-2 text-sm">
-                    <BarChart2 className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-500">合作类型:</span>
-                    <span>{demand.cooperationType}</span>
+                    <Users className="h-4 w-4 text-gray-400" />
+                    <span>合作类型: {demand.cooperationType}</span>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>需求描述</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose max-w-none">
-                  {demand.description.split('\n').map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
-                  ))}
-                </div>
+                <p className="whitespace-pre-line">{demand.description}</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>需求分解</CardTitle>
+                <CardDescription>系统自动分解的需求模块</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {demand.modules && demand.modules.length > 0 ? (
+                  <div className="space-y-4">
+                    {demand.modules.map((module) => (
+                      <div key={module.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="font-medium">{module.moduleName}</h3>
+                          <span className="text-sm text-gray-500">权重: {module.weight}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{module.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">暂无需求模块信息</p>
+                )}
               </CardContent>
             </Card>
           </div>
           
-          <div>
+          <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>智能模块分解</CardTitle>
-                <CardDescription>
-                  我们的智能系统已将您的需求分解为以下模块
-                </CardDescription>
+                <CardTitle>需求提交者</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {demand.modules?.map((module, index) => (
-                    <div key={module.id || index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-medium">{module.moduleName}</h4>
-                        <span className="text-xs text-gray-500">
-                          权重: {(module.weight || 0) * 100}%
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600">{module.description}</p>
-                      <Progress value={(module.weight || 0) * 100} className="h-1" />
-                    </div>
-                  ))}
+                <div className="flex items-center gap-3">
+                  {demand.submitter && (
+                    <UserAvatar 
+                      user={{
+                        name: demand.submitter.name || undefined,
+                        email: demand.submitter.email
+                      }}
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium">{demand.submitter?.name || '未知用户'}</p>
+                    <p className="text-sm text-gray-500">{demand.submitter?.email || ''}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
 
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>提交人</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-1 text-sm text-gray-500">
-                <span>提交人:</span>
-                <div className="flex items-center gap-1">
-                  <UserAvatar 
-                    user={demand.submitter} 
-                    className="h-5 w-5 ring-1 ring-gray-100"
-                    fallbackClassName="text-xs"
-                    showBorder={false}
-                  />
-                  <span>{demand.submitter.name}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* 匹配结果摘要 - 非所有者只能看简要信息 */}
+            {demand.matchResults && demand.matchResults.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>匹配摘要</CardTitle>
+                  <CardDescription>
+                    {isOwner ? '系统推荐的匹配企业' : '匹配企业简要信息'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {demand.matchResults.slice(0, 3).map((match) => (
+                      <div key={match.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium">{match.company.name}</span>
+                        </div>
+                        {isOwner && (
+                          <span className="text-sm text-gray-500">
+                            匹配度: {Math.round(match.score * 100)}%
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                    {demand.matchResults.length > 3 && (
+                      <div className="text-sm text-center mt-2">
+                        {isOwner ? (
+                          <Link href={`/dashboard/demands/${demand.id}/matches`} className="text-blue-600 hover:underline">
+                            查看全部 {demand.matchResults.length} 家匹配企业
+                          </Link>
+                        ) : (
+                          <p className="text-gray-500">共匹配到 {demand.matchResults.length} 家企业</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* 需求控制按钮 - 仅所有者可见 */}
+            {isOwner && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>需求操作</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <DeleteButton 
+                      demandId={demand.id}
+                      demandTitle={demand.title} 
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     );

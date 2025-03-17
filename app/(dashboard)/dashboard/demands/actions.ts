@@ -12,6 +12,7 @@ import {
 } from '@/lib/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { getUser } from '@/lib/db/queries';
+import { matchDemandsWithCompanies } from '@/lib/services/deepseek';
 
 /**
  * 删除需求的服务器操作
@@ -53,10 +54,10 @@ export async function deleteDemand(demandId: number) {
       teamId: demand.teamId,
       userId: user.id,
       action: ActivityType.DELETE_DEMAND,
-      ipAddress: '127.0.0.1', // 实际应从请求中获取
+      ipAddress: '127.0.0.1', // 实际应从请求中获取IP
     });
     
-    // 刷新页面缓存
+    // 刷新页面
     revalidatePath('/dashboard/demands');
     
     return { success: true, message: '需求已成功删除' };
@@ -92,6 +93,11 @@ export async function startMatching(demandId: number) {
       return { success: false, message: '需求不存在' };
     }
     
+    // 验证用户是否有权限匹配此需求
+    if (demand.submittedBy !== user.id) {
+      return { success: false, message: '您无权对此需求进行操作' };
+    }
+    
     // 更新需求状态为matching
     await db.update(demands)
       .set({ 
@@ -100,11 +106,26 @@ export async function startMatching(demandId: number) {
       })
       .where(eq(demands.id, demandId));
     
-    // 模拟DeepSeek AI匹配过程
-    // 实际实现中，这里应该调用DeepSeek API进行企业匹配
-    const matchedCompanies = await simulateDeepSeekMatching(demand);
+    // 获取企业列表
+    const allCompanies = await db.query.companies.findMany({
+      orderBy: [companies.createdAt]
+    });
     
-    if (matchedCompanies.length === 0) {
+    if (!allCompanies.length) {
+      await db.update(demands)
+        .set({ 
+          status: 'waiting_match',
+          updatedAt: new Date()
+        })
+        .where(eq(demands.id, demandId));
+      
+      return { success: false, message: '系统中没有企业数据，无法进行匹配' };
+    }
+    
+    // 调用DeepSeek进行AI匹配
+    const matchedCompanies = await matchDemandsWithCompanies(demand, allCompanies);
+    
+    if (!matchedCompanies || matchedCompanies.length === 0) {
       await db.update(demands)
         .set({ 
           status: 'waiting_match',
@@ -118,18 +139,16 @@ export async function startMatching(demandId: number) {
     // 保存匹配结果
     for (const match of matchedCompanies) {
       await db.insert(matchResults).values({
-        demandId: demandId,
+        demandId: demand.id,
         companyId: match.companyId,
         score: match.score,
         matchDetails: match.details,
-        isRecommended: match.score > 0.7, // 分数高于0.7的推荐
+        isRecommended: match.score > 0.7, // 匹配度>0.7的自动推荐
         status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date()
       });
     }
     
-    // 更新需求状态为matched
+    // 更新需求状态为已匹配
     await db.update(demands)
       .set({ 
         status: 'matched',
@@ -141,22 +160,18 @@ export async function startMatching(demandId: number) {
     await db.insert(activityLogs).values({
       teamId: demand.teamId,
       userId: user.id,
-      action: ActivityType.UPDATE_DEMAND,
-      ipAddress: '127.0.0.1', // 实际应从请求中获取
+      action: ActivityType.MATCH_DEMAND,
+      ipAddress: '127.0.0.1', // 实际应从请求中获取IP
     });
     
     // 刷新页面缓存
     revalidatePath(`/dashboard/demands/${demandId}`);
-    revalidatePath('/dashboard/demands');
+    revalidatePath(`/dashboard/demands/${demandId}/matches`);
     
-    return { 
-      success: true, 
-      message: `找到${matchedCompanies.length}家匹配企业`,
-      matchCount: matchedCompanies.length 
-    };
+    return { success: true, message: '已成功匹配企业', matchCount: matchedCompanies.length };
   } catch (error) {
-    console.error('启动需求匹配时出错:', error);
-    return { success: false, message: '启动需求匹配时发生错误' };
+    console.error('匹配企业时出错:', error);
+    return { success: false, message: '匹配企业时发生错误' };
   }
 }
 
@@ -187,12 +202,8 @@ export async function updateDemandStatus(demandId: number, status: string) {
       return { success: false, message: '需求不存在或您无权更新此需求' };
     }
     
-    // 验证状态值是否合法
-    const validStatuses = [
-      'new', 'waiting_match', 'matching', 'matched', 
-      'contacting', 'in_progress', 'delivered', 
-      'completed', 'abandoned', 'canceled'
-    ];
+    // 有效状态列表
+    const validStatuses = ['new', 'matching', 'matched', 'in_progress', 'completed', 'cancelled'];
     
     if (!validStatuses.includes(status)) {
       return { success: false, message: '无效的状态值' };
@@ -210,64 +221,16 @@ export async function updateDemandStatus(demandId: number, status: string) {
     await db.insert(activityLogs).values({
       teamId: demand.teamId,
       userId: user.id,
-      action: ActivityType.UPDATE_DEMAND,
-      ipAddress: '127.0.0.1', // 实际应从请求中获取
+      action: ActivityType.UPDATE_DEMAND_STATUS,
+      ipAddress: '127.0.0.1', // 实际应从请求中获取IP
     });
     
     // 刷新页面缓存
     revalidatePath(`/dashboard/demands/${demandId}`);
-    revalidatePath('/dashboard/demands');
     
     return { success: true, message: '需求状态已更新' };
   } catch (error) {
     console.error('更新需求状态时出错:', error);
     return { success: false, message: '更新需求状态时发生错误' };
   }
-}
-
-/**
- * 模拟DeepSeek匹配过程
- * 实际实现中，应该通过DeepSeek API进行匹配
- */
-async function simulateDeepSeekMatching(demand: any) {
-  // 从数据库获取一些企业
-  const allCompanies = await db.query.companies.findMany({
-    limit: 10,
-    orderBy: [sql`RANDOM()`]
-  });
-  
-  if (!allCompanies.length) {
-    return [];
-  }
-  
-  // 模拟匹配过程
-  const matchResults = allCompanies.map(company => {
-    // 随机生成匹配分数，实际应由DeepSeek AI计算
-    const score = 0.4 + Math.random() * 0.6; // 0.4-1.0之间
-    
-    // 模拟匹配详情
-    const details = {
-      matchReasons: [
-        `${company.name}在${company.category || '行业未知'}领域有专业经验`,
-        `需求描述与该企业的优势标签匹配度良好`,
-        `该企业在处理类似项目上有成功案例`
-      ],
-      matchedModules: demand.modules.map((module: any) => ({
-        moduleName: module.moduleName,
-        score: 0.3 + Math.random() * 0.7, // 0.3-1.0之间
-        reason: `该企业在${module.moduleName}相关领域有专业经验`
-      })),
-      overallScore: score
-    };
-    
-    return {
-      companyId: company.id,
-      score: parseFloat(score.toFixed(2)),
-      details: details
-    };
-  })
-  // 按分数排序，从高到低
-  .sort((a, b) => b.score - a.score);
-  
-  return matchResults;
 } 
