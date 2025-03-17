@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -35,18 +35,15 @@ import { useUser } from '@/lib/auth';
 import { use } from 'react';
 import { submitDemand } from './actions';
 
-// 定义表单验证模式
-const formSchema = z.object({
-  title: z.string().min(5, {
-    message: '标题至少需要5个字符',
-  }),
-  description: z.string().min(20, {
-    message: '需求描述至少需要20个字符',
-  }),
+// 需求提交表单的验证模式
+const demandFormSchema = z.object({
+  title: z.string().min(5),
+  description: z.string().min(20),
   category: z.string().optional(),
   budget: z.string().optional(),
-  timeline: z.string().optional(),
+  timeline: z.string().optional(), 
   cooperationType: z.string().optional(),
+  userId: z.string(),
 });
 
 // 预算选项
@@ -84,10 +81,12 @@ export default function DemandForm() {
   const [formStep, setFormStep] = useState<number>(0);
   const { userPromise } = useUser();
   const user = use(userPromise);
+  console.log({isSubmitting, activeTab, formStep});
+  
 
   // 初始化表单
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof demandFormSchema>>({
+    resolver: zodResolver(demandFormSchema),
     defaultValues: {
       title: '',
       description: '',
@@ -95,8 +94,28 @@ export default function DemandForm() {
       budget: '',
       timeline: '',
       cooperationType: '',
+      userId: user?.id?.toString() || '',
     },
   });
+
+  // 在组件顶部添加对错误状态的监听
+  const formErrors = form.formState.errors;
+
+  // 使用 useEffect 监听错误变化
+  useEffect(() => {
+    // 当表单验证失败且有错误时
+    if (Object.keys(formErrors).length > 0) {
+      const errorFields = Object.keys(formErrors);
+      // 确定错误所在的 tab
+      const errorStep = determineTabWithError(errorFields);
+      
+      // 如果当前不在错误所在的 tab，则自动跳转并提示
+      if (formStep !== errorStep) {
+        setFormStep(errorStep);
+        toast.error("表单包含错误，已自动跳转到需要修正的部分");
+      }
+    }
+  }, [formErrors, formStep]);
 
   // 处理示例选择
   const handleSelectExample = (example: DemandExample) => {
@@ -129,7 +148,9 @@ export default function DemandForm() {
   };
 
   // 处理表单提交
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: z.infer<typeof demandFormSchema>) => {
+    console.log('onSubmit', data);
+    
     if (!user) {
       toast.error('用户未登录，请先登录');
       return;
@@ -137,16 +158,36 @@ export default function DemandForm() {
 
     setIsSubmitting(true);
     try {
+      // 表单验证失败时，form.formState.errors 将包含所有错误
+      // 我们需要分析这些错误并确定它们属于哪个 tab
+      
+      // 如果表单有错误
+      if (!form.formState.isValid) {
+        // 获取所有错误字段
+        const errorFields = Object.keys(form.formState.errors);
+        
+        // 确定第一个错误所在的 tab 索引（根据字段名映射到 tab）
+        const firstErrorTab = determineTabWithError(errorFields);
+        
+        // 设置 tab 索引到包含错误的第一个 tab
+        setActiveTab(firstErrorTab.toString());
+        
+        // 显示错误提示
+        toast.error("表单包含错误，请检查标记的字段");
+        
+        return; // 阻止表单提交
+      }
+      
       // 创建表单数据对象
       const formData = new FormData();
       
-      // 添加表单字段
-      Object.entries(data).forEach(([key, value]) => {
-        if (value) formData.append(key, value);
-      });
-      
-      // 添加用户ID，这是关键的修改，把用户ID从客户端传递给服务端
-      // 确保userId是字符串类型
+      // 添加表单字段 - 确保所有字段都有值，至少是空字符串
+      formData.append('title', data.title);
+      formData.append('description', data.description);
+      formData.append('category', data.category || '');
+      formData.append('budget', data.budget || '');
+      formData.append('timeline', data.timeline || '');
+      formData.append('cooperationType', data.cooperationType || '');
       formData.append('userId', user.id.toString());
       
       // 提交需求
@@ -172,6 +213,25 @@ export default function DemandForm() {
     { title: '项目细节', icon: <LayoutGrid className="h-4 w-4" /> },
     { title: '确认提交', icon: <Check className="h-4 w-4" /> },
   ];
+
+  // 根据字段名确定 tab 索引的辅助函数
+  function determineTabWithError(errorFields: string[]): number {
+    // 这里的映射需要根据你的实际表单结构来定义
+    const tabFieldMapping = {
+      0: ["title", "category", "description"], // 第一个 tab 的字段
+      1: ["budget", "timeline"],              // 第二个 tab 的字段
+      2: ["cooperationType"]                      // 第三个 tab 的字段
+    };
+    
+    // 找到包含错误字段的第一个 tab
+    for (const [tabIndex, fields] of Object.entries(tabFieldMapping)) {
+      if (errorFields.some(field => fields.includes(field))) {
+        return parseInt(tabIndex);
+      }
+    }
+    
+    return 0; // 默认返回第一个 tab
+  }
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
