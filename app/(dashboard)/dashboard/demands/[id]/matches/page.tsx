@@ -7,7 +7,7 @@ import { demands, matchResults } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Building, Mail, Phone } from 'lucide-react';
-import { formatDate, formatRelativeTime } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import { getUser } from '@/lib/db/queries';
 import { unstable_noStore } from 'next/cache';
 
@@ -153,7 +153,7 @@ export default async function MatchesPage({ params }: MatchesPageProps) {
                       匹配度: {Math.floor(match.score * 100)}%
                     </div>
                     <div className="mt-1 text-sm text-gray-500">
-                      更新于 {formatRelativeTime(match.company.lastUpdated)}
+                      更新于 {formatDate(match.company.lastUpdated)}
                     </div>
                   </div>
                 </div>
