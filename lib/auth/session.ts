@@ -6,7 +6,7 @@ const key = new TextEncoder().encode(process.env.AUTH_SECRET);
 
 // 密码相关功能已移至 lib/auth/password.ts
 
-type SessionData = {
+type SessionData = {z
   user: { id: number };
   expires: string;
 };
