@@ -265,3 +265,34 @@ export async function getRecentMatches(limit = 2) {
     }
   });
 }
+
+// 获取企业行业分布数据
+export async function getCompanyIndustryDistribution() {
+  const user = await getUser();
+  if (!user) {
+    return [];
+  }
+  
+  // 获取所有企业的行业分类
+  const allCompanies = await db.select({
+    category: companies.category
+  }).from(companies);
+  
+  // 计算各行业的数量
+  const distribution = new Map<string, number>();
+  
+  // 对空分类进行处理
+  allCompanies.forEach(company => {
+    const category = company.category || '未分类';
+    distribution.set(category, (distribution.get(category) || 0) + 1);
+  });
+  
+  // 转换为数组格式，适合图表使用
+  const result = Array.from(distribution.entries()).map(([name, value]) => ({
+    name,
+    value
+  }));
+  
+  // 按照数量排序
+  return result.sort((a, b) => b.value - a.value);
+}

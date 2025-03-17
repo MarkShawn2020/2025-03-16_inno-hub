@@ -2,9 +2,10 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, Building, FileText, BriefcaseBusiness, ArrowUp, ArrowDown } from 'lucide-react';
 import Link from 'next/link';
-import { getUser, getDashboardStats, getRecentDemands, getRecentMatches } from '@/lib/db/queries';
+import { getUser, getDashboardStats, getRecentDemands, getRecentMatches, getCompanyIndustryDistribution } from '@/lib/db/queries';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import IndustryCharts from './industry-charts';
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -17,6 +18,7 @@ export default async function DashboardPage() {
   const stats = await getDashboardStats();
   const recentDemands = await getRecentDemands(2);
   const recentMatches = await getRecentMatches(2);
+  const industryDistribution = await getCompanyIndustryDistribution();
 
   return (
     <div>
@@ -236,21 +238,8 @@ export default async function DashboardPage() {
         </Card>
       </div>
       
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>企业行业分布</CardTitle>
-            <CardDescription>
-              所有企业按行业分类的统计
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-80">
-            <div className="flex h-full items-center justify-center">
-              <p className="text-gray-500">图表加载中...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* 图表区域 */}
+      <IndustryCharts industryDistribution={industryDistribution} />
     </div>
   );
 }
