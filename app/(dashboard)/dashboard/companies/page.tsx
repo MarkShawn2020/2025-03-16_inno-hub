@@ -6,7 +6,7 @@ import { companies, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { UploadIcon, PlusCircle } from 'lucide-react';
+import { UploadIcon, PlusCircle, Star } from 'lucide-react';
 import { getUser } from '@/lib/db/queries';
 import { redirect } from 'next/navigation';
 export const metadata: Metadata = {
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 
 
 
-async function getCompanies(userId: number) {
+async function getCompanies() {
+  // 获取所有企业记录，不限于用户自己的团队
   return db.query.companies.findMany({
-    where: eq(companies.teamId, userId),
     orderBy: [companies.createdAt]
   });
 }
@@ -44,7 +44,7 @@ export default async function CompaniesPage() {
     );
   }
   
-  const companies = await getCompanies(user.id);
+  const companies = await getCompanies();
   
   return (
     <div className="container mx-auto py-10">
@@ -69,7 +69,7 @@ export default async function CompaniesPage() {
       {companies.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <h3 className="text-lg font-medium mb-2">暂无企业数据</h3>
-          <p className="text-gray-500 mb-6">您尚未添加任何企业到系统中</p>
+          <p className="text-gray-500 mb-6">系统中尚未添加任何企业</p>
           <div className="flex gap-4 justify-center">
             <Link href="/dashboard/companies/import">
               <Button variant="outline" className="flex items-center gap-2">
@@ -90,7 +90,14 @@ export default async function CompaniesPage() {
           {companies.map((company) => (
             <Link href={`/dashboard/companies/${company.id}`} key={company.id}>
               <Card className="p-6 h-full hover:shadow-md transition-shadow cursor-pointer">
-                <h3 className="text-lg font-semibold mb-2">{company.name}</h3>
+                <div className="flex justify-between items-start">
+                  <h3 className="text-lg font-semibold mb-2">{company.name}</h3>
+                  {company.teamId === user.id && (
+                    <span className="text-yellow-500" title="您创建的企业">
+                      <Star className="h-4 w-4" />
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-500 text-sm mb-3">行业: {company.category || '未指定'}</p>
                 <p className="text-gray-500 text-sm mb-3">子行业: {company.subCategory || '未指定'}</p>
                 {company.description && (
