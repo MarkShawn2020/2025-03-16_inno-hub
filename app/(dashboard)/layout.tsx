@@ -101,8 +101,7 @@ function Header() {
     { href: '/dashboard/companies', icon: Building, label: '企业管理' },
     { href: '/dashboard/demands', icon: FileText, label: '需求管理' },
     { href: '/dashboard/matches', icon: Link2, label: '匹配结果' },
-    { href: '/dashboard/settings', icon: Cog, label: '设置' },
-    { href: '/avatar-showcase', icon: UserIcon, label: '头像展示' },
+
   ];
 
   return (

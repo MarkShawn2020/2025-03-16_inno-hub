@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, Building, FileText, BriefcaseBusiness, ArrowUp, ArrowDown } from 'lucide-react';
 import Link from 'next/link';
-import { getUser } from '@/lib/db/queries';
+import { getUser, getDashboardStats, getRecentDemands, getRecentMatches } from '@/lib/db/queries';
+import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -10,6 +12,11 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/sign-in');
   }
+
+  // 获取统计数据
+  const stats = await getDashboardStats();
+  const recentDemands = await getRecentDemands(2);
+  const recentMatches = await getRecentMatches(2);
 
   return (
     <div>
@@ -22,12 +29,23 @@ export default async function DashboardPage() {
             <FileText className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">{stats?.totalDemands || 0}</div>
             <p className="text-xs text-gray-500 mt-1">
-              <span className="text-green-500 inline-flex items-center">
-                <ArrowUp className="h-3 w-3 mr-1" />
-                2
-              </span>{' '}
+              {stats?.demandChange && stats.demandChange > 0 ? (
+                <span className="text-green-500 inline-flex items-center">
+                  <ArrowUp className="h-3 w-3 mr-1" />
+                  {stats.demandChange}
+                </span>
+              ) : stats?.demandChange && stats.demandChange < 0 ? (
+                <span className="text-red-500 inline-flex items-center">
+                  <ArrowDown className="h-3 w-3 mr-1" />
+                  {Math.abs(stats.demandChange)}
+                </span>
+              ) : (
+                <span className="text-gray-500 inline-flex items-center">
+                  0
+                </span>
+              )}{' '}
               vs 上月
             </p>
           </CardContent>
@@ -39,12 +57,23 @@ export default async function DashboardPage() {
             <Building className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">68</div>
+            <div className="text-2xl font-bold">{stats?.totalCompanies || 0}</div>
             <p className="text-xs text-gray-500 mt-1">
-              <span className="text-green-500 inline-flex items-center">
-                <ArrowUp className="h-3 w-3 mr-1" />
-                12
-              </span>{' '}
+              {stats?.companyChange && stats.companyChange > 0 ? (
+                <span className="text-green-500 inline-flex items-center">
+                  <ArrowUp className="h-3 w-3 mr-1" />
+                  {stats.companyChange}
+                </span>
+              ) : stats?.companyChange && stats.companyChange < 0 ? (
+                <span className="text-red-500 inline-flex items-center">
+                  <ArrowDown className="h-3 w-3 mr-1" />
+                  {Math.abs(stats.companyChange)}
+                </span>
+              ) : (
+                <span className="text-gray-500 inline-flex items-center">
+                  0
+                </span>
+              )}{' '}
               vs 上月
             </p>
           </CardContent>
@@ -56,12 +85,23 @@ export default async function DashboardPage() {
             <BriefcaseBusiness className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">7</div>
+            <div className="text-2xl font-bold">{stats?.successfulMatches || 0}</div>
             <p className="text-xs text-gray-500 mt-1">
-              <span className="text-green-500 inline-flex items-center">
-                <ArrowUp className="h-3 w-3 mr-1" />
-                1
-              </span>{' '}
+              {stats?.matchChange && stats.matchChange > 0 ? (
+                <span className="text-green-500 inline-flex items-center">
+                  <ArrowUp className="h-3 w-3 mr-1" />
+                  {stats.matchChange}
+                </span>
+              ) : stats?.matchChange && stats.matchChange < 0 ? (
+                <span className="text-red-500 inline-flex items-center">
+                  <ArrowDown className="h-3 w-3 mr-1" />
+                  {Math.abs(stats.matchChange)}
+                </span>
+              ) : (
+                <span className="text-gray-500 inline-flex items-center">
+                  0
+                </span>
+              )}{' '}
               vs 上月
             </p>
           </CardContent>
@@ -73,12 +113,23 @@ export default async function DashboardPage() {
             <BarChart3 className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">58%</div>
+            <div className="text-2xl font-bold">{stats?.matchRate || 0}%</div>
             <p className="text-xs text-gray-500 mt-1">
-              <span className="text-red-500 inline-flex items-center">
-                <ArrowDown className="h-3 w-3 mr-1" />
-                3%
-              </span>{' '}
+              {stats?.matchRateChange && stats.matchRateChange > 0 ? (
+                <span className="text-green-500 inline-flex items-center">
+                  <ArrowUp className="h-3 w-3 mr-1" />
+                  {stats.matchRateChange}%
+                </span>
+              ) : stats?.matchRateChange && stats.matchRateChange < 0 ? (
+                <span className="text-red-500 inline-flex items-center">
+                  <ArrowDown className="h-3 w-3 mr-1" />
+                  {Math.abs(stats.matchRateChange)}%
+                </span>
+              ) : (
+                <span className="text-gray-500 inline-flex items-center">
+                  0%
+                </span>
+              )}{' '}
               vs 上月
             </p>
           </CardContent>
@@ -95,47 +146,45 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="border rounded-md p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-medium">智慧城市解决方案</h3>
-                    <p className="text-sm text-gray-500">新能源</p>
+              {recentDemands && recentDemands.length > 0 ? (
+                recentDemands.map(demand => (
+                  <div className="border rounded-md p-4" key={demand.id}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-medium">{demand.title}</h3>
+                        <p className="text-sm text-gray-500">{demand.cooperationType || '未指定'}</p>
+                      </div>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs 
+                        ${demand.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                          demand.status === 'new' ? 'bg-blue-100 text-blue-800' : 
+                          'bg-gray-100 text-gray-800'}`}>
+                        {demand.status === 'new' ? '新需求' : 
+                         demand.status === 'in_progress' ? '进行中' : 
+                         demand.status === 'completed' ? '已完成' : 
+                         demand.status === 'matched' ? '已匹配' : '进行中'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                      {demand.description}
+                    </p>
+                    <Link href={`/dashboard/demands/${demand.id}`} className="text-sm text-blue-600 hover:underline">
+                      查看详情
+                    </Link>
                   </div>
-                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs bg-blue-100 text-blue-800">
-                    进行中
-                  </span>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  暂无需求记录
                 </div>
-                <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                  寻找智慧城市领域的解决方案，重点关注交通管理和能源监控系统...
-                </p>
-                <Link href="/dashboard/demands/1" className="text-sm text-blue-600 hover:underline">
-                  查看详情
-                </Link>
-              </div>
+              )}
               
-              <div className="border rounded-md p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-medium">无人机应用开发</h3>
-                    <p className="text-sm text-gray-500">无人机</p>
-                  </div>
-                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs bg-green-100 text-green-800">
-                    已匹配
-                  </span>
+              {recentDemands && recentDemands.length > 0 && (
+                <div className="text-center">
+                  <Link href="/dashboard/demands" className="text-sm text-blue-600 hover:underline">
+                    查看全部需求
+                  </Link>
                 </div>
-                <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                  寻找无人机应用开发合作伙伴，重点在农业和工业巡检领域...
-                </p>
-                <Link href="/dashboard/demands/2" className="text-sm text-blue-600 hover:underline">
-                  查看详情
-                </Link>
-              </div>
-              
-              <div className="text-center">
-                <Link href="/dashboard/demands" className="text-sm text-blue-600 hover:underline">
-                  查看全部需求
-                </Link>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -149,43 +198,39 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="border rounded-md p-4">
-                <div className="flex justify-between mb-2">
-                  <h3 className="font-medium">智慧城市解决方案</h3>
-                  <span className="text-sm text-gray-500">昨天</span>
-                </div>
-                <div className="flex justify-between items-center mb-3">
-                  <div>
-                    <p className="font-medium">上海科技有限公司</p>
-                    <p className="text-sm text-gray-600">匹配度: 92%</p>
+              {recentMatches && recentMatches.length > 0 ? (
+                recentMatches.map(match => (
+                  <div className="border rounded-md p-4" key={match.id}>
+                    <div className="flex justify-between mb-2">
+                      <h3 className="font-medium">{match.demand?.title || '未知需求'}</h3>
+                      <span className="text-sm text-gray-500">
+                        {match.createdAt ? formatDistanceToNow(new Date(match.createdAt), { addSuffix: true, locale: zhCN }) : ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-3">
+                      <div>
+                        <p className="font-medium">{match.company?.name || '未知企业'}</p>
+                        <p className="text-sm text-gray-600">匹配度: {Math.round(match.score * 100)}%</p>
+                      </div>
+                      <Link href={`/dashboard/matches/${match.id}`} className="text-sm text-blue-600 hover:underline">
+                        查看详情
+                      </Link>
+                    </div>
                   </div>
-                  <Link href="/dashboard/matches/1" className="text-sm text-blue-600 hover:underline">
-                    查看详情
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  暂无匹配记录
+                </div>
+              )}
+              
+              {recentMatches && recentMatches.length > 0 && (
+                <div className="text-center">
+                  <Link href="/dashboard/matches" className="text-sm text-blue-600 hover:underline">
+                    查看全部匹配
                   </Link>
                 </div>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <div className="flex justify-between mb-2">
-                  <h3 className="font-medium">无人机应用开发</h3>
-                  <span className="text-sm text-gray-500">3天前</span>
-                </div>
-                <div className="flex justify-between items-center mb-3">
-                  <div>
-                    <p className="font-medium">北京航空科技有限公司</p>
-                    <p className="text-sm text-gray-600">匹配度: 87%</p>
-                  </div>
-                  <Link href="/dashboard/matches/2" className="text-sm text-blue-600 hover:underline">
-                    查看详情
-                  </Link>
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <Link href="/dashboard/matches" className="text-sm text-blue-600 hover:underline">
-                  查看全部匹配
-                </Link>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
