@@ -2,15 +2,30 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { signToken, verifyToken } from '@/lib/auth/session';
 
-const protectedRoutes = '/dashboard';
+// 受保护的基础路径
+const protectedBasePath = '/dashboard/';
+
+// 即使在 /dashboard 下也允许公开访问的页面路径
+const publicAllowedPaths = [
+  '/dashboard/companies',
+  '/dashboard/demands',
+  '/dashboard'
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get('session');
-  const isProtectedRoute = pathname.startsWith(protectedRoutes);
+  
+  // 检查是否是受保护路径，但排除公开允许的路径
+  const isPublicAllowed = publicAllowedPaths.some(path => 
+    pathname === path || pathname.startsWith(`${path}/`) && !pathname.includes('/new')
+  );
+  
+  const isProtectedRoute = pathname.startsWith(protectedBasePath) && !isPublicAllowed;
 
+  // 如果是受保护路径且没有会话，则重定向到登录页
   if (isProtectedRoute && !sessionCookie) {
-    return NextResponse.redirect(new URL('/sign-in', request.url));
+    return NextResponse.redirect(new URL(`/sign-in?redirect=${pathname}`, request.url));
   }
 
   let res = NextResponse.next();

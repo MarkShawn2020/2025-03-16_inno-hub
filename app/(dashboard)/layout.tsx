@@ -231,12 +231,14 @@ function UserMenu() {
 function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { userPromise } = useUser();
+  const user = use(userPromise);
+  const isLoggedIn = !!user;
   
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: '概览' },
     { href: '/dashboard/companies', icon: Building, label: '企业库' },
     { href: '/dashboard/demands', icon: FileText, label: '需求库' },
-
   ];
 
   return (
@@ -249,60 +251,86 @@ function Header() {
               <span className="ml-2 text-xl font-semibold text-gray-900">InnoHub</span>
             </Link>
             
-            {/* 桌面导航 */}
-            <nav className="hidden md:flex items-center space-x-1">
+            <nav className="hidden md:flex space-x-6">
               {navItems.map((item) => (
-                <Link key={item.href} href={item.href} passHref>
-                  <Button
-                    variant={pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'secondary' : 'ghost'}
-                    className={`shadow-none ${
-                      pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'bg-gray-100' : ''
-                    }`}
-                    size="sm"
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center text-sm font-medium ${
+                    pathname === item.href
+                      ? 'text-orange-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <item.icon className="h-4 w-4 mr-1" />
+                  {item.label}
                 </Link>
               ))}
+              
+              {isLoggedIn && (
+                <Link
+                  href="/dashboard/invite-team"
+                  className={`flex items-center text-sm font-medium ${
+                    pathname === '/dashboard/invite-team'
+                      ? 'text-orange-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Link2 className="h-4 w-4 mr-1" />
+                  邀请团队成员
+                </Link>
+              )}
             </nav>
           </div>
           
-          <div className="flex items-center space-x-4">
-            {/* 移动端菜单按钮 */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="md:hidden"
+          <div className="hidden md:flex items-center space-x-4">
+            <UserMenu />
+          </div>
+          
+          <div className="md:hidden">
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-500 p-2"
             >
-              <Menu className="h-5 w-5" />
-            </Button>
-            
-            <Suspense fallback={<div className="h-9" />}>
-              <UserMenu />
-            </Suspense>
+              <Menu className="h-6 w-6" />
+            </button>
           </div>
         </div>
         
         {/* 移动端菜单 */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-3 border-t border-gray-100 mt-3">
-            <nav className="flex flex-col space-y-2">
+          <div className="md:hidden py-4">
+            <nav className="flex flex-col space-y-4">
               {navItems.map((item) => (
-                <Link key={item.href} href={item.href} passHref>
-                  <Button
-                    variant={pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'secondary' : 'ghost'}
-                    className={`shadow-none justify-start w-full ${
-                      pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'bg-gray-100' : ''
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center text-sm font-medium ${
+                    pathname === item.href
+                      ? 'text-orange-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <item.icon className="h-4 w-4 mr-2" />
+                  {item.label}
                 </Link>
               ))}
+              
+              {isLoggedIn && (
+                <Link
+                  href="/dashboard/invite-team"
+                  className={`flex items-center text-sm font-medium ${
+                    pathname === '/dashboard/invite-team'
+                      ? 'text-orange-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  邀请团队成员
+                </Link>
+              )}
             </nav>
           </div>
         )}

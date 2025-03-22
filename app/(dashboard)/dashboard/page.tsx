@@ -10,10 +10,6 @@ import IndustryCharts from './industry-charts';
 export default async function DashboardPage() {
   const user = await getUser();
 
-  if (!user) {
-    redirect('/sign-in');
-  }
-
   // 获取统计数据
   const stats = await getDashboardStats();
   const recentDemands = await getRecentDemands(2);
