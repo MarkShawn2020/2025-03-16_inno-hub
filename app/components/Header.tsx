@@ -11,6 +11,7 @@ import {
   Building, 
   Settings,
   Menu,
+  Info
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -91,6 +92,7 @@ export function Header() {
     { href: '/dashboard', icon: LayoutDashboard, label: '概览' },
     { href: '/dashboard/companies', icon: Building, label: '企业库' },
     { href: '/dashboard/demands', icon: FileText, label: '需求库' },
+    { href: '/about', icon: Info, label: '关于我们' },
   ];
 
   return (
