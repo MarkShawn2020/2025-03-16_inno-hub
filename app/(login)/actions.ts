@@ -9,10 +9,13 @@ import {
   teams,
   teamMembers,
   activityLogs,
+  invitationCodes,
+  invitationCodeUsages,
   type NewUser,
   type NewTeam,
   type NewTeamMember,
   type NewActivityLog,
+  type NewInvitationCodeUsage,
   ActivityType,
   invitations,
 } from '@/lib/db/schema';
@@ -105,10 +108,53 @@ const signUpSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   inviteId: z.string().optional(),
+  invitationCode: z.string().min(1, '邀请码是必填项'),
 });
 
 export const signUp = validatedAction(signUpSchema, async (data, formData) => {
-  const { email, password, inviteId } = data;
+  const { email, password, inviteId, invitationCode } = data;
+
+  // 验证邀请码
+  const validCode = await db
+    .select()
+    .from(invitationCodes)
+    .where(
+      and(
+        eq(invitationCodes.code, invitationCode),
+        eq(invitationCodes.isActive, true),
+      ),
+    )
+    .limit(1);
+
+  if (validCode.length === 0) {
+    return {
+      error: '无效的邀请码，请检查后重试',
+      email,
+      password,
+    };
+  }
+
+  // 检查邀请码是否已达到最大使用次数
+  const codeInfo = validCode[0];
+  if (
+    codeInfo.maxUses !== null &&
+    codeInfo.currentUses >= codeInfo.maxUses
+  ) {
+    return {
+      error: '此邀请码已达到最大使用次数',
+      email,
+      password,
+    };
+  }
+
+  // 检查邀请码是否已过期
+  if (codeInfo.expiresAt && new Date(codeInfo.expiresAt) < new Date()) {
+    return {
+      error: '此邀请码已过期',
+      email,
+      password,
+    };
+  }
 
   const existingUser = await db
     .select()
@@ -118,7 +164,7 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 
   if (existingUser.length > 0) {
     return {
-      error: 'Failed to create user. Please try again.',
+      error: '该邮箱已被注册，请直接登录或使用其他邮箱',
       email,
       password,
     };
@@ -136,7 +182,7 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 
   if (!createdUser) {
     return {
-      error: 'Failed to create user. Please try again.',
+      error: '创建用户失败，请重试',
       email,
       password,
     };
@@ -177,19 +223,19 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
         .where(eq(teams.id, teamId))
         .limit(1);
     } else {
-      return { error: 'Invalid or expired invitation.', email, password };
+      return { error: '无效或已过期的邀请链接', email, password };
     }
   } else {
     // Create a new team if there's no invitation
     const newTeam: NewTeam = {
-      name: `${email}'s Team`,
+      name: `${email}的团队`,
     };
 
     [createdTeam] = await db.insert(teams).values(newTeam).returning();
 
     if (!createdTeam) {
       return {
-        error: 'Failed to create team. Please try again.',
+        error: '创建团队失败，请重试',
         email,
         password,
       };
@@ -207,9 +253,23 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
     role: userRole,
   };
 
+  // 更新邀请码使用次数
+  await db
+    .update(invitationCodes)
+    .set({ currentUses: codeInfo.currentUses + 1 })
+    .where(eq(invitationCodes.id, codeInfo.id));
+
+  // 记录邀请码使用情况
+  const newCodeUsage: NewInvitationCodeUsage = {
+    codeId: codeInfo.id,
+    userId: createdUser.id,
+  };
+
   await Promise.all([
     db.insert(teamMembers).values(newTeamMember),
+    db.insert(invitationCodeUsages).values(newCodeUsage),
     logActivity(teamId, createdUser.id, ActivityType.SIGN_UP),
+    logActivity(teamId, createdUser.id, ActivityType.USE_INVITATION_CODE),
     setSession(createdUser),
   ]);
 

@@ -22,6 +22,31 @@ export const users = pgTable('users', {
   deletedAt: timestamp('deleted_at'),
 });
 
+// 添加邀请码表
+export const invitationCodes = pgTable('invitation_codes', {
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(),
+  description: text('description'),
+  isActive: boolean('is_active').notNull().default(true),
+  maxUses: integer('max_uses'),
+  currentUses: integer('current_uses').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at'),
+  createdBy: integer('created_by').references(() => users.id),
+});
+
+// 添加邀请码使用记录表
+export const invitationCodeUsages = pgTable('invitation_code_usages', {
+  id: serial('id').primaryKey(),
+  codeId: integer('code_id')
+    .notNull()
+    .references(() => invitationCodes.id),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  usedAt: timestamp('used_at').notNull().defaultNow(),
+});
+
 export const teams = pgTable('teams', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
@@ -184,6 +209,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   teamMembers: many(teamMembers),
   invitationsSent: many(invitations),
   demands: many(demands),
+  createdInvitationCodes: many(invitationCodes, { relationName: 'createdCodes' }),
+  usedInvitationCodes: many(invitationCodeUsages),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
@@ -281,6 +308,25 @@ export const collaborationHistoryRelations = relations(collaborationHistory, ({ 
   }),
 }));
 
+export const invitationCodesRelations = relations(invitationCodes, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [invitationCodes.createdBy],
+    references: [users.id],
+  }),
+  usages: many(invitationCodeUsages),
+}));
+
+export const invitationCodeUsagesRelations = relations(invitationCodeUsages, ({ one }) => ({
+  code: one(invitationCodes, {
+    fields: [invitationCodeUsages.codeId],
+    references: [invitationCodes.id],
+  }),
+  user: one(users, {
+    fields: [invitationCodeUsages.userId],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Team = typeof teams.$inferSelect;
@@ -303,6 +349,10 @@ export type MatchResult = typeof matchResults.$inferSelect;
 export type NewMatchResult = typeof matchResults.$inferInsert;
 export type CollaborationHistory = typeof collaborationHistory.$inferSelect;
 export type NewCollaborationHistory = typeof collaborationHistory.$inferInsert;
+export type InvitationCode = typeof invitationCodes.$inferSelect;
+export type NewInvitationCode = typeof invitationCodes.$inferInsert;
+export type InvitationCodeUsage = typeof invitationCodeUsages.$inferSelect;
+export type NewInvitationCodeUsage = typeof invitationCodeUsages.$inferInsert;
 export type TeamDataWithMembers = Team & {
   teamMembers: (TeamMember & {
     user: Pick<User, 'id' | 'name' | 'email'>;
@@ -330,4 +380,6 @@ export enum ActivityType {
   MATCH_DEMAND = 'MATCH_DEMAND',
   UPDATE_DEMAND_STATUS = 'UPDATE_DEMAND_STATUS',
   VIEW_MATCH_RESULTS = 'VIEW_MATCH_RESULTS',
+  CREATE_INVITATION_CODE = 'CREATE_INVITATION_CODE',
+  USE_INVITATION_CODE = 'USE_INVITATION_CODE',
 }
