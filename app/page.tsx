@@ -1,12 +1,14 @@
 'use client';
 
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { use } from 'react';
 import { useUser } from '@/lib/auth';
 import { ArrowRight, PieChart, Handshake, BarChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 import { Carousel } from './components/Carousel';
 import { NotificationBanner } from './components/NotificationBanner';
 
@@ -21,6 +23,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Header />
       <NotificationBanner />
       <Carousel />
       <main className="flex-1">
@@ -125,6 +128,7 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 } 
