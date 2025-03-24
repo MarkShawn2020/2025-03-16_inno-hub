@@ -6,7 +6,7 @@ import { companies, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { UploadIcon, PlusCircle, Star, InfoIcon, AlertTriangle } from 'lucide-react';
+import { PlusCircle, Star, InfoIcon, AlertTriangle } from 'lucide-react';
 import { getCompanyIndustryDistribution } from '@/lib/db/queries';
 import { redirect } from 'next/navigation';
 import IndustryCharts from '../industry-charts';
@@ -18,23 +18,7 @@ export const metadata: Metadata = {
 };
 
 async function getCompanies(user: any = null) {
-  // 无论用户是否登录，都显示可用企业数据
-  // 根据用户登录状态获取适当的企业数据
-  // const filter = getCompanyFilter(user);
-  
-  // if (filter.isAvailable) {
-  //   return db.query.companies.findMany({
-  //     where: eq(companies.isAvailable, true),
-  //     orderBy: [companies.createdAt]
-  //   });
-  // } else {
-  //   // 已登录用户可查看所有企业
-  //   return db.query.companies.findMany({
-  //     orderBy: [companies.createdAt]
-  //   });
-  // }
-  
-  // 简化逻辑，所有用户都可以看到企业列表
+  // 所有用户都可以看到公开的企业列表
   return db.query.companies.findMany({
     where: eq(companies.isAvailable, true),
     orderBy: [companies.createdAt]
@@ -56,16 +40,10 @@ export default async function CompaniesPage() {
         
         {isLoggedIn ? (
           <div className="flex gap-4">
-            <Link href="/dashboard/companies/import">
-              <Button variant="outline" className="flex items-center gap-2">
-                <UploadIcon className="h-4 w-4" />
-                导入企业
-              </Button>
-            </Link>
             <Link href="/dashboard/companies/new">
               <Button className="flex items-center gap-2">
                 <PlusCircle className="h-4 w-4" />
-                添加企业
+                申请添加企业
               </Button>
             </Link>
           </div>
@@ -73,7 +51,7 @@ export default async function CompaniesPage() {
           <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 p-2 rounded">
             <AlertTriangle className="h-4 w-4" />
             <Link href="/sign-in" className="underline font-medium">登录</Link>
-            <span>以查看完整信息并添加企业</span>
+            <span>以申请添加企业</span>
           </div>
         )}
       </div>
@@ -87,16 +65,10 @@ export default async function CompaniesPage() {
           <p className="text-gray-500 mb-6">系统中尚未添加任何企业</p>
           {isLoggedIn && (
             <div className="flex gap-4 justify-center">
-              <Link href="/dashboard/companies/import">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <UploadIcon className="h-4 w-4" />
-                  导入企业
-                </Button>
-              </Link>
               <Link href="/dashboard/companies/new">
                 <Button className="flex items-center gap-2">
                   <PlusCircle className="h-4 w-4" />
-                  添加企业
+                  申请添加企业
                 </Button>
               </Link>
             </div>
@@ -147,7 +119,7 @@ export default async function CompaniesPage() {
       {!isLoggedIn && (
         <div className="mt-8 p-4 bg-gray-50 rounded-lg text-center">
           <h3 className="text-lg font-medium mb-2">登录获取更多功能</h3>
-          <p className="text-gray-600 mb-4">登录后可查看详细联系方式，添加企业，并管理您的需求匹配</p>
+          <p className="text-gray-600 mb-4">登录后可申请添加企业，并管理您的企业信息</p>
           <Link href="/sign-in">
             <Button>登录或注册</Button>
           </Link>
