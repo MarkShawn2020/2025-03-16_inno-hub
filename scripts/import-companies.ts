@@ -2,9 +2,11 @@ import { parse } from 'csv-parse/sync';
 import { readFileSync } from 'fs';
 import { config } from 'dotenv';
 import { db } from '../lib/db/index';
-import { companies } from '../lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { companies, matchResults } from '../lib/db/schema';
+import { eq, and, like, isNull } from 'drizzle-orm';
 
+// 加载环境变量
+config();
 
 interface CompanyCSV {
   企业名称: string;
@@ -22,6 +24,52 @@ interface CompanyCSV {
   fellow联系方式: string;
 }
 
+async function postClean() {
+  try {
+    // 1. 先找出所有没有 category 的公司
+    const companiesWithoutCategory = await db
+      .select()
+      .from(companies)
+      .where(isNull(companies.category));
+
+    console.log(`Found ${companiesWithoutCategory.length} companies without category`);
+
+    // 2. 删除这些公司的相关 match_results 记录
+    for (const company of companiesWithoutCategory) {
+      const deleteMatchResults = await db
+        .delete(matchResults)
+        .where(eq(matchResults.companyId, company.id));
+      console.log(`Deleted ${deleteMatchResults.rowCount} match results for company ${company.name}`);
+    }
+
+    // 3. 现在可以安全地删除这些公司
+    const deleteResult = await db
+      .delete(companies)
+      .where(isNull(companies.category));
+    console.log(`Deleted ${deleteResult.rowCount} companies without category`);
+
+    // 4. 重命名以 "√" 开头的公司
+    const companiesToRename = await db
+      .select()
+      .from(companies)
+      .where(like(companies.name, '√%'));
+
+    for (const company of companiesToRename) {
+      const newName = company.name.replace(/^√\s*/, '');
+      await db
+        .update(companies)
+        .set({ name: newName })
+        .where(eq(companies.id, company.id));
+      console.log(`Renamed company from "${company.name}" to "${newName}"`);
+    }
+
+    console.log('Post-clean completed successfully');
+  } catch (error) {
+    console.error('Error during post-clean:', error);
+    throw error;
+  }
+}
+
 async function importCompanies() {
   try {
     // 读取 CSV 文件
@@ -35,7 +83,11 @@ async function importCompanies() {
 
     // 处理每条记录
     for (const record of records) {
-      if (!record.企业名称) continue;
+      // 跳过没有企业名称或细分领域的记录
+      if (!record.企业名称 || !record.细分领域) {
+        console.log(`Skipping company "${record.企业名称}" due to missing required fields`);
+        continue;
+      }
 
       // 处理企业优势标签
       const advantageTags = record.企业优势tag
@@ -86,6 +138,10 @@ async function importCompanies() {
     }
 
     console.log('Import completed successfully');
+    
+    // 执行后清理
+    await postClean();
+    
   } catch (error) {
     console.error('Error importing companies:', error);
     throw error;
