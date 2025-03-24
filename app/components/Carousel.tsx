@@ -12,7 +12,7 @@ const carouselItems = [
     id: 1,
     title: "连接企业需求与能力",
     description: "InnoHub商机共振平台助力企业高效匹配，实现业务增长",
-    image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2084&q=80",
+    image: "/images/carousel/business-meeting.jpg",
     ctaText: "了解更多",
     ctaLink: "/dashboard"
   },
@@ -20,7 +20,7 @@ const carouselItems = [
     id: 2,
     title: "强大的AI匹配算法",
     description: "基于DeepSeek大模型技术，实现精准的商机匹配",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    image: "/images/carousel/ai-technology.jpg",
     ctaText: "查看企业库",
     ctaLink: "/dashboard/companies"
   },
@@ -28,7 +28,7 @@ const carouselItems = [
     id: 3,
     title: "提交您的业务需求",
     description: "让系统为您推荐最合适的企业合作伙伴",
-    image: "https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
+    image: "/images/carousel/collaboration.jpg",
     ctaText: "提交需求",
     ctaLink: "/dashboard/demands/new"
   }
