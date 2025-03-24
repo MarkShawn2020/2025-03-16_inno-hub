@@ -161,10 +161,11 @@ export async function getDemandsForUser() {
 
 // 获取概览页统计数据
 export async function getDashboardStats() {
-  const user = await getUser();
-  if (!user) {
-    return null;
-  }
+  // 移除用户验证检查，允许未登录用户也能看到统计数据
+  // const user = await getUser();
+  // if (!user) {
+  //   return null;
+  // }
 
   // 获取总需求数
   const totalDemands = await db.select({ count: count() }).from(demands);
@@ -231,10 +232,11 @@ export async function getDashboardStats() {
 
 // 获取最近的需求
 export async function getRecentDemands(limit = 2) {
-  const user = await getUser();
-  if (!user) {
-    return [];
-  }
+  // 移除用户验证检查，允许未登录用户也能看到最近需求
+  // const user = await getUser();
+  // if (!user) {
+  //   return [];
+  // }
   
   return await db.query.demands.findMany({
     orderBy: [desc(demands.createdAt)],
@@ -251,10 +253,11 @@ export async function getRecentDemands(limit = 2) {
 
 // 获取最新匹配
 export async function getRecentMatches(limit = 2) {
-  const user = await getUser();
-  if (!user) {
-    return [];
-  }
+  // 移除用户验证检查，允许未登录用户也能看到最新匹配
+  // const user = await getUser();
+  // if (!user) {
+  //   return [];
+  // }
   
   return await db.query.matchResults.findMany({
     orderBy: [desc(matchResults.createdAt)],

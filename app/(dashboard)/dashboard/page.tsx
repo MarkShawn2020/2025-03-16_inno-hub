@@ -6,14 +6,16 @@ import { getUser, getDashboardStats, getRecentDemands, getRecentMatches, getComp
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import IndustryCharts from './industry-charts';
+import { Button } from '@/components/ui/button';
 
 export default async function DashboardPage() {
   const user = await getUser();
+  const isLoggedIn = !!user;
 
   // 获取统计数据
   const stats = await getDashboardStats();
   const recentDemands = await getRecentDemands(2);
-
+  const industryDistribution = await getCompanyIndustryDistribution();
 
   return (
     <div>
@@ -146,7 +148,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>最近需求</CardTitle>
             <CardDescription>
-              您最近创建的需求
+              {isLoggedIn ? '您最近创建的需求' : '平台最近的需求'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -172,7 +174,7 @@ export default async function DashboardPage() {
                     <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                       {demand.description}
                     </p>
-                    <Link href={`/dashboard/demands/${demand.id}`} className="text-sm text-blue-600 hover:underline">
+                    <Link href={isLoggedIn ? `/dashboard/demands/${demand.id}` : `/sign-in?redirect=/dashboard/demands/${demand.id}`} className="text-sm text-blue-600 hover:underline">
                       查看详情
                     </Link>
                   </div>
@@ -193,9 +195,22 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 行业分布图表 */}
+
+            <IndustryCharts industryDistribution={industryDistribution} />
         
       </div>
       
+      {!isLoggedIn && (
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg text-center">
+          <h3 className="text-lg font-medium mb-2">登录获取更多功能</h3>
+          <p className="text-gray-600 mb-4">登录后可提交需求，查看详细匹配结果，并管理您的企业信息</p>
+          <Link href="/sign-in">
+            <Button>登录或注册</Button>
+          </Link>
+        </div>
+      )}
 
     </div>
   );
