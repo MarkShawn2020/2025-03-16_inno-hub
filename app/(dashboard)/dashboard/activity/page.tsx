@@ -19,6 +19,8 @@ import {
   RefreshCw,
   Eye,
   type LucideIcon,
+  Key,
+  TicketCheck
 } from 'lucide-react';
 import { ActivityType } from '@/lib/db/schema';
 import { getActivityLogs } from '@/lib/db/queries';
@@ -44,6 +46,8 @@ const iconMap: Record<ActivityType, LucideIcon> = {
   [ActivityType.MATCH_DEMAND]: Search,
   [ActivityType.UPDATE_DEMAND_STATUS]: RefreshCw,
   [ActivityType.VIEW_MATCH_RESULTS]: Eye,
+  [ActivityType.CREATE_INVITATION_CODE]: Key,
+  [ActivityType.USE_INVITATION_CODE]: TicketCheck,
 };
 
 function getRelativeTime(date: Date) {
@@ -102,6 +106,10 @@ function formatAction(action: ActivityType): string {
       return 'You updated a demand status';
     case ActivityType.VIEW_MATCH_RESULTS:
       return 'You viewed match results';
+    case ActivityType.CREATE_INVITATION_CODE:
+      return 'You created an invitation code';
+    case ActivityType.USE_INVITATION_CODE:
+      return 'You used an invitation code';
     default:
       return 'Unknown action occurred';
   }

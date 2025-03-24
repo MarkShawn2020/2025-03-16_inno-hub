@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/db/drizzle';
 import { Button } from '@/components/ui/button';

@@ -7,12 +7,7 @@ import { getUser } from '@/lib/db/queries';
  * @returns 用户对象或null（如果未登录）
  */
 export async function getCurrentUser() {
-  try {
-    return await getUser();
-  } catch (error) {
-    console.error('获取用户信息失败:', error);
-    return null;
-  }
+  return await getUser();
 }
 
 /**

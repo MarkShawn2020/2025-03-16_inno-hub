@@ -1,3 +1,4 @@
+"use client";
 import { Suspense } from 'react';
 import { use } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@/lib/auth';
 import { InvitationCodeList } from './invitation-code-list';
 import { CreateInvitationCodeForm } from './create-invitation-code-form';
-import { H2 } from '@/components/ui/typography';
+
 
 export default function InvitationCodesPage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div className="flex justify-between items-center">
-        <H2>邀请码管理</H2>
+        <h2 className="text-2xl font-bold">邀请码管理</h2>
       </div>
       
       <div className="grid gap-6">
