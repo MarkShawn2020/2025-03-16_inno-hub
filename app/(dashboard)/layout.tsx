@@ -140,19 +140,6 @@ function Header() {
                 </Link>
               ))}
               
-              {isLoggedIn && (
-                <Link
-                  href="/dashboard/invite-team"
-                  className={`flex items-center text-sm font-medium ${
-                    pathname === '/dashboard/invite-team'
-                      ? 'text-orange-600'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <Link2 className="h-4 w-4 mr-1" />
-                  邀请团队成员
-                </Link>
-              )}
             </nav>
           </div>
           
@@ -189,21 +176,7 @@ function Header() {
                   {item.label}
                 </Link>
               ))}
-              
-              {isLoggedIn && (
-                <Link
-                  href="/dashboard/invite-team"
-                  className={`flex items-center text-sm font-medium ${
-                    pathname === '/dashboard/invite-team'
-                      ? 'text-orange-600'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Link2 className="h-4 w-4 mr-2" />
-                  邀请团队成员
-                </Link>
-              )}
+            
             </nav>
           </div>
         )}

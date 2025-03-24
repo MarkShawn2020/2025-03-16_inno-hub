@@ -20,6 +20,7 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   deletedAt: timestamp('deleted_at'),
+  profileData: jsonb('profile_data'),
 });
 
 // 添加邀请码表
@@ -32,7 +33,7 @@ export const invitationCodes = pgTable('invitation_codes', {
   currentUses: integer('current_uses').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   expiresAt: timestamp('expires_at'),
-  createdBy: integer('created_by').references(() => users.id),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'cascade' }),
 });
 
 // 添加邀请码使用记录表
@@ -43,7 +44,7 @@ export const invitationCodeUsages = pgTable('invitation_code_usages', {
     .references(() => invitationCodes.id),
   userId: integer('user_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   usedAt: timestamp('used_at').notNull().defaultNow(),
 });
 
@@ -63,7 +64,7 @@ export const teamMembers = pgTable('team_members', {
   id: serial('id').primaryKey(),
   userId: integer('user_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   teamId: integer('team_id')
     .notNull()
     .references(() => teams.id),
@@ -76,7 +77,7 @@ export const activityLogs = pgTable('activity_logs', {
   teamId: integer('team_id')
     .notNull()
     .references(() => teams.id),
-  userId: integer('user_id').references(() => users.id),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   action: text('action').notNull(),
   timestamp: timestamp('timestamp').notNull().defaultNow(),
   ipAddress: varchar('ip_address', { length: 45 }),
@@ -91,7 +92,7 @@ export const invitations = pgTable('invitations', {
   role: varchar('role', { length: 50 }).notNull(),
   invitedBy: integer('invited_by')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   invitedAt: timestamp('invited_at').notNull().defaultNow(),
   status: varchar('status', { length: 20 }).notNull().default('pending'),
 });
@@ -114,7 +115,7 @@ export const companies = pgTable('companies', {
   activeProjectCount: integer('active_project_count').default(0),
   lastUpdated: timestamp('last_updated').notNull().defaultNow(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  teamId: integer('team_id').references(() => teams.id),
+  teamId: integer('team_id').references(() => teams.id, { onDelete: 'cascade' }),
 });
 
 // 企业能力表
@@ -122,7 +123,7 @@ export const companyCapabilities = pgTable('company_capabilities', {
   id: serial('id').primaryKey(),
   companyId: integer('company_id')
     .notNull()
-    .references(() => companies.id),
+    .references(() => companies.id, { onDelete: 'cascade' }),
   capability: varchar('capability', { length: 255 }).notNull(),
   description: text('description'),
   weight: real('weight').default(1.0),
@@ -144,10 +145,10 @@ export const demands = pgTable('demands', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   submittedBy: integer('submitted_by')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   teamId: integer('team_id')
     .notNull()
-    .references(() => teams.id),
+    .references(() => teams.id, { onDelete: 'cascade' }),
 });
 
 // 需求模块表
@@ -155,7 +156,7 @@ export const demandModules = pgTable('demand_modules', {
   id: serial('id').primaryKey(),
   demandId: integer('demand_id')
     .notNull()
-    .references(() => demands.id),
+    .references(() => demands.id, { onDelete: 'cascade' }),
   moduleName: varchar('module_name', { length: 255 }).notNull(),
   description: text('description'),
   weight: real('weight').default(1.0),
@@ -167,10 +168,10 @@ export const matchResults = pgTable('match_results', {
   id: serial('id').primaryKey(),
   demandId: integer('demand_id')
     .notNull()
-    .references(() => demands.id),
+    .references(() => demands.id, { onDelete: 'cascade' }),
   companyId: integer('company_id')
     .notNull()
-    .references(() => companies.id),
+    .references(() => companies.id, { onDelete: 'cascade' }),
   score: real('score').notNull(),
   matchDetails: jsonb('match_details'),
   isRecommended: boolean('is_recommended').default(false),
@@ -184,10 +185,10 @@ export const collaborationHistory = pgTable('collaboration_history', {
   id: serial('id').primaryKey(),
   companyId1: integer('company_id_1')
     .notNull()
-    .references(() => companies.id),
+    .references(() => companies.id, { onDelete: 'cascade' }),
   companyId2: integer('company_id_2')
     .notNull()
-    .references(() => companies.id),
+    .references(() => companies.id, { onDelete: 'cascade' }),
   projectName: varchar('project_name', { length: 255 }),
   startDate: timestamp('start_date'),
   endDate: timestamp('end_date'),

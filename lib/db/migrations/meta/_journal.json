@@ -22,6 +22,27 @@
       "when": 1742234960020,
       "tag": "0002_sweet_thena",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1742813270724,
+      "tag": "0003_mighty_warbound",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1742813478996,
+      "tag": "0004_fast_mattie_franklin",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1742813662463,
+      "tag": "0005_watery_silver_samurai",
+      "breakpoints": true
     }
   ]
 }
