@@ -268,11 +268,6 @@ export async function getRecentMatches(limit = 2) {
 
 // 获取企业行业分布数据
 export async function getCompanyIndustryDistribution() {
-  const user = await getUser();
-  if (!user) {
-    return [];
-  }
-  
   // 获取所有企业的行业分类
   const allCompanies = await db.select({
     category: companies.category

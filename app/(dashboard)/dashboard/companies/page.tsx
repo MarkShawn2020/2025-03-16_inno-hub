@@ -18,20 +18,27 @@ export const metadata: Metadata = {
 };
 
 async function getCompanies(user: any = null) {
+  // 无论用户是否登录，都显示可用企业数据
   // 根据用户登录状态获取适当的企业数据
-  const filter = getCompanyFilter(user);
+  // const filter = getCompanyFilter(user);
   
-  if (filter.isAvailable) {
-    return db.query.companies.findMany({
-      where: eq(companies.isAvailable, true),
-      orderBy: [companies.createdAt]
-    });
-  } else {
-    // 已登录用户可查看所有企业
-    return db.query.companies.findMany({
-      orderBy: [companies.createdAt]
-    });
-  }
+  // if (filter.isAvailable) {
+  //   return db.query.companies.findMany({
+  //     where: eq(companies.isAvailable, true),
+  //     orderBy: [companies.createdAt]
+  //   });
+  // } else {
+  //   // 已登录用户可查看所有企业
+  //   return db.query.companies.findMany({
+  //     orderBy: [companies.createdAt]
+  //   });
+  // }
+  
+  // 简化逻辑，所有用户都可以看到企业列表
+  return db.query.companies.findMany({
+    where: eq(companies.isAvailable, true),
+    orderBy: [companies.createdAt]
+  });
 }
 
 export default async function CompaniesPage() {
